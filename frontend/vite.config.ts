@@ -8,10 +8,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": {
+      "/_/backend": {
         target: apiTarget,
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api/, "") || "/"
+        rewrite: (p) => p.replace(/^\/_\/backend/, "") || "/"
       },
       "/editor": { target: apiTarget, changeOrigin: true },
       "/content": { target: apiTarget, changeOrigin: true },
