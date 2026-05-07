@@ -7,6 +7,23 @@
 - `frontend/`: React + Zustand + xterm 터미널 UI
 - `backend/`: Express API (콘텐츠/AI/에디터)
 
+## Git 원격 연결
+
+로컬 저장소는 이미 초기화되어 있습니다. GitHub에 새 저장소를 만든 뒤:
+
+```bash
+cd /path/to/game
+git remote add origin https://github.com/<사용자>/<저장소>.git
+git branch -M main
+git push -u origin main
+```
+
+GitHub CLI를 쓰는 경우 (`gh auth login` 후):
+
+```bash
+gh repo create <저장소이름> --private --source=. --remote=origin --push
+```
+
 ## Vercel 배포
 
 리포지토리 **루트**를 Vercel 프로젝트 루트로 연결합니다. `vercel.json`이 빌드·정적 출력·API 라우트를 설정합니다.
