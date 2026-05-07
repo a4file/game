@@ -1,0 +1,11 @@
+{
+  "name": "terminal-rpg-monorepo",
+  "private": true,
+  "description": "Vercel root: builds frontend + backend and exposes Express via api/[[...slug]].ts",
+  "scripts": {
+    "vercel-build": "bash scripts/vercel-build.sh"
+  },
+  "dependencies": {
+    "serverless-http": "^3.2.0"
+  }
+}
