@@ -68,7 +68,16 @@ editorRouter.post("/sheets", async (req, res) => {
 
 editorRouter.patch("/sheet/:name", async (req, res) => {
   const sheetName = req.params.name as EditableSheetName;
-  const editable: EditableSheetName[] = ["maps", "characters", "monsters", "skills", "weapons", "items", "equipments"];
+  const editable: EditableSheetName[] = [
+    "maps",
+    "characters",
+    "monsters",
+    "storyBranches",
+    "skills",
+    "weapons",
+    "items",
+    "equipments"
+  ];
   if (!editable.includes(sheetName)) {
     return res.status(400).json({ error: { code: "INVALID_SHEET", message: "Unsupported sheet name" } });
   }

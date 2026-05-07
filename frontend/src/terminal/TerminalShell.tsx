@@ -31,6 +31,13 @@ export const TerminalShell = () => {
   }, [editorEnabled, loadBundle]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("editor") === "1") {
+      setEditorEnabled(true);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!mountRef.current || termRef.current) return;
     const term = new Terminal({
       cursorBlink: true,
@@ -67,8 +74,9 @@ export const TerminalShell = () => {
     e.preventDefault();
     const cmd = input.trim();
     if (!cmd) return;
-    if (cmd === "editor on") setEditorEnabled(true);
-    if (cmd === "editor off") setEditorEnabled(false);
+    const normalized = cmd.startsWith("/") ? cmd.slice(1) : cmd;
+    if (normalized === "editor on") setEditorEnabled(true);
+    if (normalized === "editor off") setEditorEnabled(false);
     await runCommand(cmd);
     setInput("");
   };
@@ -76,8 +84,9 @@ export const TerminalShell = () => {
   const quickCommands = ["/start", "profile", "gacha 1 pickup", "battle", "adventure", "inventory", "save"];
 
   const runQuickCommand = async (cmd: string) => {
-    if (cmd === "editor on") setEditorEnabled(true);
-    if (cmd === "editor off") setEditorEnabled(false);
+    const normalized = cmd.startsWith("/") ? cmd.slice(1) : cmd;
+    if (normalized === "editor on") setEditorEnabled(true);
+    if (normalized === "editor off") setEditorEnabled(false);
     await runCommand(cmd);
     setInput("");
   };

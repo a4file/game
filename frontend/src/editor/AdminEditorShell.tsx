@@ -8,7 +8,7 @@ import { generateRowsWithAi, assistCellWithAi } from "./ai/editorAiClient";
 import type { SheetBundle } from "../rpg/types";
 import { getApiBaseUrl } from "../apiBase";
 
-const tabsConst = ["maps", "characters", "monsters", "skills", "weapons", "items", "equipments"] as const;
+const tabsConst = ["maps", "characters", "monsters", "storyBranches", "skills", "weapons", "items", "equipments"] as const;
 type SheetTab = (typeof tabsConst)[number];
 type EditorPanel = SheetTab | "bible";
 
@@ -25,7 +25,6 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const tabs = tabsConst;
   const safeSkills = Array.isArray(bundle.skills) ? bundle.skills : [];
   const sheetPanel = panel === "bible" ? null : panel;
 
@@ -129,13 +128,17 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
       else if (column === "name") row[column] = `${sheetPanel}-${String(nextIndex).padStart(3, "0")}`;
       else if (column === "monsterIds" || column === "skillIds" || column === "storyPages") row[column] = [];
       else if (column === "description" || column === "effect") row[column] = "";
-      else if (column === "rarity") row[column] = 3;
+      else if (column === "rarity") row[column] = "normal";
       else if (column === "element") row[column] = "fire";
       else if (column === "slot") row[column] = String(sheetPanel) === "equipments" ? "armor" : "weapon";
       else if (column === "type") row[column] = "consumable";
       else if (column === "kind") row[column] = "attack";
       else if (column === "powerMultiplier") row[column] = 1.1;
       else if (column === "cooldown") row[column] = 1;
+      else if (column === "str") row[column] = 12;
+      else if (column === "agi") row[column] = 10;
+      else if (column === "luk") row[column] = 8;
+      else if (column === "intel") row[column] = 9;
       else if (column === "maxPages") row[column] = 20;
       else row[column] = 0;
     }
@@ -186,58 +189,80 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
   return (
     <section className="admin-shell">
       <h3>ADMIN SHEET EDITOR</h3>
-      <div className="tab-row">
-        {tabs.map((name) => (
-          <button
-            key={name}
-            onClick={() => {
-              setPanel(name);
-              setPage(1);
-            }}
-            className={panel === name ? "active" : ""}
-          >
-            {name}
+      <div className="editor-layout">
+        <aside className="editor-tree">
+          <p className="tree-folder">sheet/</p>
+          <p className="tree-folder">  world/</p>
+          {(["maps", "characters", "monsters", "storyBranches"] as const).map((name) => (
+            <button
+              key={name}
+              className={`tree-item ${panel === name ? "active" : ""}`}
+              onClick={() => {
+                setPanel(name);
+                setPage(1);
+              }}
+            >
+              ├─ {name}
+            </button>
+          ))}
+          <p className="tree-folder">  systems/</p>
+          {(["skills", "weapons", "equipments", "items"] as const).map((name) => (
+            <button
+              key={name}
+              className={`tree-item ${panel === name ? "active" : ""}`}
+              onClick={() => {
+                setPanel(name);
+                setPage(1);
+              }}
+            >
+              ├─ {name}
+            </button>
+          ))}
+          <p className="tree-folder">  docs/</p>
+          <button type="button" className={`tree-item ${panel === "bible" ? "active" : ""}`} onClick={() => setPanel("bible")}>
+            └─ bible
           </button>
-        ))}
-        <button type="button" className={panel === "bible" ? "active" : ""} onClick={() => setPanel("bible")}>
-          bible
-        </button>
-        <button onClick={() => exportJson(`sheet-${bundle.version}`, bundle)}>export json</button>
-        <button onClick={reloadFromBackend}>{loading ? "reloading..." : "reload backend"}</button>
-        {sheetPanel && <button onClick={addRow}>add row</button>}
-        {sheetPanel && <button onClick={saveToBackend}>save backend</button>}
+        </aside>
+        <div className="editor-content">
+          <div className="tab-row">
+            <button onClick={() => exportJson(`sheet-${bundle.version}`, bundle)}>export json</button>
+            <button onClick={reloadFromBackend}>{loading ? "reloading..." : "reload backend"}</button>
+            {sheetPanel && <button onClick={addRow}>add row</button>}
+            {sheetPanel && <button onClick={saveToBackend}>save backend</button>}
+          </div>
+          {panel === "bible" ? (
+            <BibleEditorPanel />
+          ) : (
+            <>
+              <p>
+                rows: {rows.length} | version: {bundle.version} | page: {clampedPage}/{totalPages}
+              </p>
+              <div className="row-actions" style={{ marginBottom: 8 }}>
+                <button type="button" onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
+                  prev
+                </button>
+                <button type="button" onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>
+                  next
+                </button>
+              </div>
+              <SheetTable
+                sheetName={panel}
+                rows={pagedRows}
+                onChange={applyRows}
+                skillOptions={safeSkills.map((skill) => ({ id: skill.id, name: skill.name }))}
+                onDeleteRow={deleteRow}
+                onDuplicateRow={duplicateRow}
+                onAddRow={addRow}
+              />
+              <div className="ai-panel">
+                <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="AI 프롬프트 입력" />
+                <button onClick={onGenerate}>generate rows</button>
+                <button onClick={onAssistFirstCell}>assist first cell</button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-      {panel === "bible" ? (
-        <BibleEditorPanel />
-      ) : (
-        <>
-          <p>
-            rows: {rows.length} | version: {bundle.version} | page: {clampedPage}/{totalPages}
-          </p>
-          <div className="row-actions" style={{ marginBottom: 8 }}>
-            <button type="button" onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
-              prev
-            </button>
-            <button type="button" onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>
-              next
-            </button>
-          </div>
-          <SheetTable
-            sheetName={panel}
-            rows={pagedRows}
-            onChange={applyRows}
-            skillOptions={safeSkills.map((skill) => ({ id: skill.id, name: skill.name }))}
-            onDeleteRow={deleteRow}
-            onDuplicateRow={duplicateRow}
-            onAddRow={addRow}
-          />
-          <div className="ai-panel">
-            <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="AI 프롬프트 입력" />
-            <button onClick={onGenerate}>generate rows</button>
-            <button onClick={onAssistFirstCell}>assist first cell</button>
-          </div>
-        </>
-      )}
       {error && <pre className="preview error-preview">{error}</pre>}
       {preview && <pre className="preview">{preview}</pre>}
     </section>

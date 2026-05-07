@@ -1,5 +1,5 @@
 export type Element = "fire" | "water" | "nature" | "machine";
-export type Rarity = 3 | 4 | 5;
+export type Rarity = "normal" | "rare" | "unique" | "epic" | "legendary";
 
 export interface Skill {
   id: string;
@@ -16,6 +16,10 @@ export interface Character {
   description: string;
   rarity: Rarity;
   element: Element;
+  str: number;
+  agi: number;
+  luk: number;
+  intel: number;
   atk: number;
   hp: number;
   skillIds: string[];
@@ -26,7 +30,12 @@ export interface Character {
 export interface Monster {
   id: string;
   name: string;
+  rarity: Rarity;
   element: Element;
+  str: number;
+  agi: number;
+  luk: number;
+  intel: number;
   atk: number;
   hp: number;
   skillIds: string[];
@@ -37,6 +46,7 @@ export interface Equipment {
   name: string;
   slot: "weapon" | "armor" | "accessory";
   rarity: Rarity;
+  skillIds?: string[];
   atk?: number;
   hp?: number;
 }
@@ -55,10 +65,24 @@ export interface MapStage {
   monsterIds: string[];
 }
 
+export interface StoryBranch {
+  id: string;
+  chapter: number;
+  title: string;
+  event: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  flagA: string;
+  flagB: string;
+  flagC: string;
+}
+
 export interface SheetBundle {
   maps: MapStage[];
   characters: Character[];
   monsters: Monster[];
+  storyBranches: StoryBranch[];
   skills: Skill[];
   weapons: Equipment[];
   items: Item[];

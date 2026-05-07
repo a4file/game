@@ -2,14 +2,14 @@ import { banners } from "./banners";
 import type { Character, GachaState, Rarity } from "../types";
 
 const pickRarity = (bannerId: "standard" | "pickup", state: GachaState): Rarity => {
-  if (state.pityCount >= 89) return 5;
+  if (state.pityCount >= 89) return "legendary";
   const banner = banners.find((b) => b.id === bannerId) ?? banners[0];
   let roll = Math.random();
   for (const rate of banner.rates) {
     roll -= rate.rate;
     if (roll <= 0) return rate.rarity;
   }
-  return 3;
+  return "normal";
 };
 
 export interface GachaResult {
@@ -30,8 +30,8 @@ export const rollGacha = (
     const candidates = pool.filter((c) => c.rarity === rarity);
     const picked = candidates[Math.floor(Math.random() * candidates.length)] ?? pool[0];
     rewards.push(picked);
-    next.pityCount = rarity === 5 ? 0 : next.pityCount + 1;
-    next.pickupPityCount = bannerId === "pickup" && rarity === 5 ? 0 : next.pickupPityCount + 1;
+    next.pityCount = rarity === "legendary" ? 0 : next.pityCount + 1;
+    next.pickupPityCount = bannerId === "pickup" && rarity === "legendary" ? 0 : next.pickupPityCount + 1;
   }
   return { rewards, nextState: next };
 };

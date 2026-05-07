@@ -3,9 +3,17 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import seedData from "../../data/sheets.json";
 
-export type EditableSheetName = "maps" | "characters" | "monsters" | "skills" | "weapons" | "items" | "equipments";
+export type EditableSheetName =
+  | "maps"
+  | "characters"
+  | "monsters"
+  | "storyBranches"
+  | "skills"
+  | "weapons"
+  | "items"
+  | "equipments";
 
-const seed: SheetBundle = seedData as SheetBundle;
+const seed: SheetBundle = seedData as unknown as SheetBundle;
 
 let currentBundle: SheetBundle = structuredClone(seed);
 let loaded = false;
@@ -32,6 +40,26 @@ const toStringArray = (value: unknown): string[] => {
       .filter(Boolean);
   }
   return [];
+};
+
+const normalizeRarity = (value: unknown): "normal" | "rare" | "unique" | "epic" | "legendary" => {
+  if (typeof value === "string") {
+    const lowered = value.toLowerCase().trim();
+    if (lowered === "normal" || lowered === "rare" || lowered === "unique" || lowered === "epic" || lowered === "legendary") {
+      return lowered;
+    }
+    if (lowered === "노말") return "normal";
+    if (lowered === "레어") return "rare";
+    if (lowered === "유니크") return "unique";
+    if (lowered === "에픽") return "epic";
+    if (lowered === "레전더리") return "legendary";
+  }
+  if (typeof value === "number") {
+    if (value >= 5) return "legendary";
+    if (value === 4) return "epic";
+    return "normal";
+  }
+  return "normal";
 };
 
 const normalizeBundle = (raw: unknown): SheetBundle => {
@@ -71,8 +99,12 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
             id: String(character.id ?? `c-${String(index + 1).padStart(3, "0")}`),
             name: String(character.name ?? `캐릭터 ${index + 1}`),
             description: String(character.description ?? "설명 없음"),
-            rarity: Number(character.rarity ?? 3) as 3 | 4 | 5,
+            rarity: normalizeRarity(character.rarity),
             element: (character.element as "fire" | "water" | "nature" | "machine") ?? "fire",
+            str: Number(character.str ?? 12),
+            agi: Number(character.agi ?? 10),
+            luk: Number(character.luk ?? 8),
+            intel: Number(character.intel ?? 9),
             atk: Number(character.atk ?? 30),
             hp: Number(character.hp ?? 120),
             skillIds: skillIds.length > 0 ? skillIds : mappedSkill ? [mappedSkill] : [],
@@ -89,17 +121,56 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
           return {
             id: String(monster.id ?? `m-${String(index + 1).padStart(3, "0")}`),
             name: String(monster.name ?? `몬스터 ${index + 1}`),
+            rarity: normalizeRarity(monster.rarity),
             element: (monster.element as "fire" | "water" | "nature" | "machine") ?? "fire",
+            str: Number(monster.str ?? 10),
+            agi: Number(monster.agi ?? 8),
+            luk: Number(monster.luk ?? 6),
+            intel: Number(monster.intel ?? 7),
             atk: Number(monster.atk ?? 20),
             hp: Number(monster.hp ?? 100),
             skillIds: skillIds.length > 0 ? skillIds : mappedSkill ? [mappedSkill] : []
           };
         })
       : [],
+    storyBranches: Array.isArray(incoming.storyBranches)
+      ? (incoming.storyBranches as Array<Record<string, unknown>>).map((branch, index) => ({
+          id: String(branch.id ?? `sb-${String(index + 1).padStart(3, "0")}`),
+          chapter: Number(branch.chapter ?? index + 1),
+          title: String(branch.title ?? `분기 ${index + 1}`),
+          event: String(branch.event ?? "기록되지 않은 사건이 벌어졌다."),
+          optionA: String(branch.optionA ?? "정면 돌파"),
+          optionB: String(branch.optionB ?? "우회 탐색"),
+          optionC: String(branch.optionC ?? "침묵 유지"),
+          flagA: String(branch.flagA ?? `branch_${index + 1}_A`),
+          flagB: String(branch.flagB ?? `branch_${index + 1}_B`),
+          flagC: String(branch.flagC ?? `branch_${index + 1}_C`)
+        }))
+      : [],
     skills: normalizedSkills,
-    weapons: Array.isArray(incoming.weapons) ? (incoming.weapons as SheetBundle["weapons"]) : [],
+    weapons: Array.isArray(incoming.weapons)
+      ? (incoming.weapons as Array<Record<string, unknown>>).map((weapon, index) => ({
+          id: String(weapon.id ?? `w-${String(index + 1).padStart(3, "0")}`),
+          name: String(weapon.name ?? `무기 ${index + 1}`),
+          slot: (weapon.slot as "weapon" | "armor" | "accessory") ?? "weapon",
+          rarity: normalizeRarity(weapon.rarity),
+          skillIds: toStringArray(weapon.skillIds),
+          atk: Number(weapon.atk ?? 0),
+          hp: Number(weapon.hp ?? 0)
+        }))
+      : [],
     items: Array.isArray(incoming.items) ? (incoming.items as SheetBundle["items"]) : [],
-    equipments: Array.isArray(incoming.equipments) ? (incoming.equipments as SheetBundle["equipments"]) : []
+    equipments: Array.isArray(incoming.equipments)
+      ? (incoming.equipments as Array<Record<string, unknown>>).map((equipment, index) => ({
+          id: String(equipment.id ?? `e-${String(index + 1).padStart(3, "0")}`),
+          name: String(equipment.name ?? `장비 ${index + 1}`),
+          slot: (equipment.slot as "weapon" | "armor" | "accessory") ?? "armor",
+          rarity: normalizeRarity(equipment.rarity),
+          skillIds: toStringArray(equipment.skillIds),
+          atk: Number(equipment.atk ?? 0),
+          hp: Number(equipment.hp ?? 0)
+        }))
+      : []
   };
 };
 

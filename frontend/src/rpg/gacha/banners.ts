@@ -17,9 +17,9 @@ export const banners: Banner[] = [
     id: "standard",
     name: "상시 소환",
     rates: [
-      { rarity: 5, rate: 0.03 },
-      { rarity: 4, rate: 0.17 },
-      { rarity: 3, rate: 0.8 }
+      { rarity: "legendary", rate: 0.03 },
+      { rarity: "epic", rate: 0.17 },
+      { rarity: "normal", rate: 0.8 }
     ]
   },
   {
@@ -27,9 +27,9 @@ export const banners: Banner[] = [
     name: "픽업 소환",
     pickupCharacterId: "c-aria",
     rates: [
-      { rarity: 5, rate: 0.04 },
-      { rarity: 4, rate: 0.18 },
-      { rarity: 3, rate: 0.78 }
+      { rarity: "legendary", rate: 0.04 },
+      { rarity: "epic", rate: 0.18 },
+      { rarity: "normal", rate: 0.78 }
     ]
   }
 ];

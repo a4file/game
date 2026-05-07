@@ -83,6 +83,48 @@ body {
   color: #dce8ff;
 }
 
+.editor-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px;
+}
+
+.editor-tree {
+  border: 1px solid #2d4f78;
+  background: #071220;
+  padding: 8px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.tree-folder {
+  margin: 6px 0 4px;
+  color: #8fb4df;
+  font-size: 12px;
+}
+
+.tree-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 2px 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #dce8ff;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.tree-item.active {
+  background: #1f5fa3;
+  border-color: #3b79be;
+}
+
+.editor-content {
+  min-width: 0;
+}
+
 .tab-row {
   display: flex;
   gap: 6px;
@@ -295,5 +337,9 @@ body {
 
   .quick-actions button {
     flex: 1 1 calc(50% - 6px);
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
   }
 }
