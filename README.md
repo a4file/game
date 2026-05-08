@@ -33,6 +33,8 @@ gh repo create <저장소이름> --private --source=. --remote=origin --push
 - **API(백엔드)**: 루트 `api/[[...slug]].js` + `serverless-http`로 Express를 서버리스에 올립니다. 클라이언트 기본 베이스 URL은 **`/api`** (`GET /api/health`, `GET /api/content/bundle` 등).
 - **환경 변수**: `VITE_API_BASE_URL`을 비우면 위와 같이 **`/api`** 를 씁니다. 별 도메인/API만 쓸 때만 절대 URL을 넣으면 됩니다.
 
+- **저장(DB)**: 이 프로젝트는 **PostgreSQL 같은 DB에 연결되어 있지 않습니다.** 로컬은 `backend/data/sheets.json`과 `docs/mythic-archive/*.md`(파일); Vercel 서버리스에는 **`VERCEL=1`일 때 `/tmp`** 에만 씁니다(비영속). 게임 진행 번들 폴백은 빌드 시 `frontend/public/`에 포함되는 **`sheets-fallback.json`**, World Bible 목록/API 실패 시 **`bible-manifest.json` + `/mythic-archive/*.md`** 정적 폴백을 봅니다. **영속·멀티 리전 저장**이 필요하면 Vercel은 **KV / Postgres (Neon) / Blob** 또는 Supabase 같은 외부 DB를 따로 두고 Express에서 연동하는 방식을 권장합니다.
+
 **Vercel 대시보드 → Environment Variables** (Production 등):
 
 - `OPENROUTER_API_KEY`, `OPENROUTER_SITE_URL`, `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODELS` — AI 사용 시

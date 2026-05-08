@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "node ./scripts/copy-sheets-fallback.mjs",
+    "copy:mythic": "node ./scripts/copy-mythic-archive.mjs",
+    "copy:public-fallback": "npm run copy:sheets-fallback && npm run copy:mythic",
+    "predev": "npm run copy:public-fallback",
     "dev": "vite",
     "copy:sheets-fallback": "node ./scripts/copy-sheets-fallback.mjs",
-    "build": "tsc -b && npm run copy:sheets-fallback && vite build",
+    "build": "tsc -b && npm run copy:public-fallback && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -908,8 +908,56 @@ body {
   color: #f0f6ff;
 }
 
+.bible-source-pill {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #355f8f;
+}
+
+.bible-source-pill.api {
+  border-color: #3d8f5f;
+  color: #b8ffc8;
+}
+
+.bible-source-pill.static {
+  border-color: #c9a227;
+  color: #ffe8a3;
+}
+
+.bible-banner-preview {
+  margin-top: 8px;
+  border: 1px solid #355f8f;
+  border-radius: 4px;
+  color: #bcd6f5;
+  font-size: 11px;
+  background: #0f1826;
+}
+
 .bible-status-preview {
   margin-top: 8px;
+}
+
+.editor-boundary-error {
+  padding: 14px;
+  border: 1px solid #b84a4a;
+  border-radius: 6px;
+  background: #1a1212;
+  color: #ffb8b8;
+  font-size: 12px;
+}
+
+.editor-boundary-error pre {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.editor-boundary-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #e0a8a8;
 }
 
 @media (max-width: 1024px) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { BibleEditorPanel } from "./BibleEditorPanel";
 import { CharacterProfileEditor } from "./CharacterProfileEditor";
+import { EditorSafeBoundary } from "./EditorSafeBoundary";
 import { SheetProfileEditor } from "./SheetProfileEditor";
 import { exportJson } from "./importExport";
 import { sheetSchemas } from "./sheets/schemas";
@@ -261,7 +262,9 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
             </div>
           </div>
           {panel === "bible" ? (
-            <BibleEditorPanel />
+            <EditorSafeBoundary title="World Bible">
+              <BibleEditorPanel />
+            </EditorSafeBoundary>
           ) : panel === "characters" ? (
             <>
               <CharacterProfileEditor

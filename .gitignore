@@ -16,3 +16,6 @@ yarn-error.log*
 
 # Generated at frontend build from backend/data/sheets.json
 frontend/public/sheets-fallback.json
+# Generated Mythic Archive static copy + manifest (World Bible 폴백)
+frontend/public/mythic-archive/
+frontend/public/bible-manifest.json
