@@ -10,8 +10,12 @@ import { maxManaFromCharacter } from "../rpg/battle/formulas";
 const MOBILE_TAB_BREAKPOINT = "(max-width: 900px)";
 
 export const TerminalShell = () => {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const commandInputRef = useRef<HTMLInputElement | null>(null);
+  const statusBarRef = useRef<HTMLDivElement | null>(null);
+  const commandWrapRef = useRef<HTMLFormElement | null>(null);
+  const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
   const inputRef = useRef("");
@@ -22,7 +26,6 @@ export const TerminalShell = () => {
   const [narrowViewport, setNarrowViewport] = useState(
     typeof window !== "undefined" ? window.matchMedia(MOBILE_TAB_BREAKPOINT).matches : false
   );
-  const [mobileShellTab, setMobileShellTab] = useState<"play" | "editor">("play");
   const [hintOpen, setHintOpen] = useState(false);
 
   const logs = useRpgStore((s) => s.logs);
@@ -181,18 +184,9 @@ export const TerminalShell = () => {
   }, []);
 
   useEffect(() => {
-    if (!editorEnabled) {
-      setMobileShellTab("play");
-    }
-  }, [editorEnabled]);
-
-  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("editor") === "1") {
       setEditorEnabled(true);
-      if (typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
-        setMobileShellTab("editor");
-      }
     }
   }, []);
 
@@ -250,9 +244,6 @@ export const TerminalShell = () => {
       const low = normalized.toLowerCase();
       if (low === "editor on") {
         setEditorEnabled(true);
-        if (typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
-          setMobileShellTab("editor");
-        }
       }
       if (low === "editor off") setEditorEnabled(false);
       await runCommand(cmd);
@@ -316,12 +307,10 @@ export const TerminalShell = () => {
     fit.fit();
   }, [narrowViewport]);
 
-  const showMobileEditorTabs = narrowViewport && editorEnabled;
-  const showTerminalPanel =
-    !narrowViewport || !editorEnabled || mobileShellTab === "play";
-  const showEditorPanel =
-    editorEnabled &&
-    ((!narrowViewport && Boolean(bundle)) || (narrowViewport && mobileShellTab === "editor"));
+  const showEditorOverlay = narrowViewport && editorEnabled;
+  const showTerminalPanel = !showEditorOverlay;
+  const showEditorPanel = editorEnabled && Boolean(bundle);
+  const showEditorPlaceholder = editorEnabled && !bundle;
 
   useEffect(() => {
     const fit = fitRef.current;
@@ -330,60 +319,77 @@ export const TerminalShell = () => {
       fit.fit();
     });
     return () => window.cancelAnimationFrame(id);
-  }, [showTerminalPanel, narrowViewport, mobileShellTab, editorEnabled]);
+  }, [showTerminalPanel, narrowViewport, editorEnabled]);
+
+  useEffect(() => {
+    if (!narrowViewport || !rootRef.current) return;
+    const root = rootRef.current;
+    const updateViewportChrome = () => {
+      const headerHeight = statusBarRef.current?.offsetHeight ?? 50;
+      const inputHeight = commandWrapRef.current?.offsetHeight ?? 44;
+      const quickHeight = quickActionsRef.current?.offsetHeight ?? 62;
+      root.style.setProperty("--mobile-header-h", `${Math.ceil(headerHeight)}px`);
+      root.style.setProperty("--mobile-input-h", `${Math.ceil(inputHeight)}px`);
+      root.style.setProperty("--mobile-actions-h", `${Math.ceil(quickHeight)}px`);
+    };
+
+    updateViewportChrome();
+    window.addEventListener("resize", updateViewportChrome);
+    return () => {
+      window.removeEventListener("resize", updateViewportChrome);
+      root.style.removeProperty("--mobile-header-h");
+      root.style.removeProperty("--mobile-input-h");
+      root.style.removeProperty("--mobile-actions-h");
+    };
+  }, [narrowViewport, editorEnabled, showEditorOverlay, hintOpen]);
 
   return (
     <div
-      className={`terminal-root ${showMobileEditorTabs ? "terminal-root--shell-tabs" : ""}`}
+      ref={rootRef}
+      className={`terminal-root ${showEditorOverlay ? "terminal-root--editor-overlay" : ""}`}
     >
-      {showMobileEditorTabs && (
-        <div className="mobile-shell-tabs" role="tablist" aria-label="화면 전환">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mobileShellTab === "play"}
-            className={mobileShellTab === "play" ? "active" : ""}
-            onClick={() => setMobileShellTab("play")}
-          >
-            플레이
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mobileShellTab === "editor"}
-            className={mobileShellTab === "editor" ? "active" : ""}
-            onClick={() => setMobileShellTab("editor")}
-          >
-            시트 에디터
-          </button>
-        </div>
-      )}
       <div
-        className={`terminal-layout ${showMobileEditorTabs && mobileShellTab === "editor" ? "terminal-layout--editor-tab" : ""}`}
+        className={`terminal-layout ${showEditorOverlay ? "terminal-layout--editor-overlay" : ""}`}
       >
       <section
         className={`terminal-panel ${!showTerminalPanel ? "terminal-panel--tab-hidden" : ""}`}
       >
-        <div className="status-bar">
-          <span className="status-item status-id">NAME: {hero?.name ?? "-"}</span>
-          <span className="status-item">LV: {hero?.level ?? 0}</span>
-          <span className="status-item status-hp" title="체력">
-            {hero ? `HP: ${hpCurrent}/${Math.max(hpMax, 1)}` : "HP: -"}
+        <div ref={statusBarRef} className="status-bar">
+          <span className="status-item status-id status-priority-core">NAME: {hero?.name ?? "-"}</span>
+          <span className="status-item status-priority-core">LV: {hero?.level ?? 0}</span>
+          <span className="status-item status-hp status-meter" title="체력">
+            <span className="status-meter-label">{hero ? `HP ${hpCurrent}/${Math.max(hpMax, 1)}` : "HP -"}</span>
+            <span className="status-meter-track" aria-hidden="true">
+              <span
+                className="status-meter-fill"
+                style={{
+                  width: hero ? `${Math.max(0, Math.min(100, (hpCurrent / Math.max(hpMax, 1)) * 100))}%` : "0%"
+                }}
+              />
+            </span>
           </span>
-          <span className="status-item status-mp" title="마력 · 전투에서 스킬 사용 시 소모">
-            {hero ? `MP: ${mpCurrent}/${Math.max(mpMax, 1)}` : "MP: -"}
+          <span className="status-item status-mp status-meter" title="마력 · 전투에서 스킬 사용 시 소모">
+            <span className="status-meter-label">{hero ? `MP ${mpCurrent}/${Math.max(mpMax, 1)}` : "MP -"}</span>
+            <span className="status-meter-track" aria-hidden="true">
+              <span
+                className="status-meter-fill"
+                style={{
+                  width: hero ? `${Math.max(0, Math.min(100, (mpCurrent / Math.max(mpMax, 1)) * 100))}%` : "0%"
+                }}
+              />
+            </span>
           </span>
-          <span className="status-item status-atk" title="공격력">
+          <span className="status-item status-atk status-priority-medium" title="공격력">
             ATK: {hero ? atkDisplay : "-"}
           </span>
-          <span className="status-item">CLASS: {statusClass}</span>
-          <span className="status-item">NATION: {statusNation}</span>
-          <span className="status-item">ELEMENT: {String(statusElement).toUpperCase()}</span>
-          <span className="status-item">GEM: {inventory.gem ?? 0}</span>
-          <span className={rarityClass}>{hero ? hero.rarity.toUpperCase() : "N/A"}</span>
+          <span className="status-item status-priority-low">CLASS: {statusClass}</span>
+          <span className="status-item status-priority-low">NATION: {statusNation}</span>
+          <span className="status-item status-priority-low">ELEMENT: {String(statusElement).toUpperCase()}</span>
+          <span className="status-item status-priority-low">GEM: {inventory.gem ?? 0}</span>
+          <span className={`${rarityClass} status-priority-low`}>{hero ? hero.rarity.toUpperCase() : "N/A"}</span>
         </div>
         <div className="terminal-mount" ref={mountRef} />
-        <form onSubmit={onSubmit} className="command-input">
+        <form ref={commandWrapRef} onSubmit={onSubmit} className="command-input">
           <span>&gt;</span>
           <input
             ref={commandInputRef}
@@ -406,7 +412,7 @@ export const TerminalShell = () => {
             </div>
           </button>
         </form>
-        <div className="quick-actions">
+        <div ref={quickActionsRef} className="quick-actions">
           <div className="action-group">
             <span className="action-group-title">CHOICE</span>
             {["1", "2", "3", "4"].map((cmd) => (
@@ -466,11 +472,7 @@ export const TerminalShell = () => {
               type="button"
               onClick={() => {
                 setEditorEnabled((prev) => {
-                  const next = !prev;
-                  if (next && typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
-                    setMobileShellTab("editor");
-                  }
-                  return next;
+                  return !prev;
                 });
               }}
             >
@@ -484,21 +486,17 @@ export const TerminalShell = () => {
           </div>
         )}
       </section>
-      {showEditorPanel &&
-        (bundle ? (
-          <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />
-        ) : (
-          <section className="admin-shell editor-bundle-placeholder" aria-live="polite">
-            <h3 className="admin-shell-title">시트 에디터</h3>
-            <p>
-              번들이 아직 없습니다. 터미널에서 <code>reload-bundle</code> 또는 <code>diag</code>로 로드 상태를 확인한 뒤
-              다시 열어 주세요.
-            </p>
-            <p className="editor-bundle-placeholder-hint">
-              플레이 탭으로 돌아가려면 위의 <strong>플레이</strong>를 누르세요.
-            </p>
-          </section>
-        ))}
+      {showEditorPanel && <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />}
+      {showEditorPlaceholder && (
+        <section className="admin-shell editor-bundle-placeholder" aria-live="polite">
+          <h3 className="admin-shell-title">시트 에디터</h3>
+          <p>
+            번들이 아직 없습니다. 터미널에서 <code>reload-bundle</code> 또는 <code>diag</code>로 로드 상태를 확인한 뒤
+            다시 열어 주세요.
+          </p>
+          <p className="editor-bundle-placeholder-hint">하단의 editor off 버튼으로 닫을 수 있습니다.</p>
+        </section>
+      )}
     </div>
     </div>
   );
