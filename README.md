@@ -115,3 +115,68 @@ OPENROUTER_FALLBACK_MODELS=qwen/qwen-2.5-7b-instruct:free,mistralai/mistral-7b-i
 - JSON export
 - AI row 생성 / 셀 보조 suggestion
 
+## 게임 구조 시각화
+
+```mermaid
+flowchart LR
+  userInput[UserCommand] --> terminalShell[TerminalShell]
+  terminalShell --> runCommand[runCommandStore]
+  runCommand --> startFlow[startDraftFlow]
+  runCommand --> storyFlow[storyRun]
+  runCommand --> battleFlow[battleRun]
+  runCommand --> adventureFlow[adventureRun]
+  storyFlow --> branchLookup[storyBranchesByChapter]
+  branchLookup --> eventDispatch[eventTypeDispatch]
+  eventDispatch --> choiceResolve[storyChooseResolve]
+  choiceResolve --> flagUpdate[sessionFlagsUpdate]
+  flagUpdate --> nextChapter[nextChapterProgress]
+  adminEditor[AdminEditor] --> editorApi[editorSheetsApi]
+  editorApi --> normalize[backendNormalizeBundle]
+  normalize --> sheetsData[sheetsJson]
+  sheetsData --> branchLookup
+```
+
+## 페이지 이벤트 타입
+
+- `battle`: 전투 중심 장면, 전투형 선택 보상 강화
+- `adventure`: 탐사/서사 장면, 단서 및 자원 획득
+- `companion`: 동료 영입 시도 장면, 성공 시 계약 토큰
+- `merchant`: 보부상 거래 장면, 할인 토큰/도박형 리스크
+- `town`: 휴식/정비 장면, 안전 선택 보정 및 회복 자원
+
+### 이벤트 밸런스 표 (story choose 기준)
+
+| eventType | 기본 성공 선택 | 핵심 추가 보상 | 실패 추가 페널티(gem) |
+|---|---|---|---|
+| battle | A | `warCry +1` | +4 |
+| adventure | B | `memoryShard +1` | +3 |
+| companion | A | `allyContract +1` | +4 |
+| merchant | B | `discountToken +1` | +6 |
+| town | A | `restPass +1` | +2 |
+
+- 공통 성공 보상: `eventTier` 기준 gem (`common=5`, `rare=10`, `legend=18`)
+- 공통 실패 손실: `eventTier` 기준 gem (`common=3`, `rare=5`, `legend=7`) + 이벤트별 추가 페널티
+- 동일 `eventType` 연속 성공(2회 이상): `memoryShard +1` 콤보 보너스
+
+### 챕터 구간 스케일링
+
+- `early (1~20)`: 보상 x1.00 / 페널티 x1.00 / 추가보상 x1.00
+- `mid (21~45)`: 보상 x1.20 / 페널티 x1.25 / 추가보상 x1.10
+- `late (46+)`: 보상 x1.40 / 페널티 x1.60 / 추가보상 x1.25
+
+같은 이벤트 타입이라도 후반으로 갈수록 기대 보상과 실패 리스크가 함께 커져 긴장감을 유지합니다.
+
+### eventTier 자동 상향 규칙
+
+- `mid (21~45)`: `common` 챕터는 5챕터마다 `rare`로 승급
+- `late (46+)`:
+  - `common`은 짝수 챕터 `rare`, 6배수 챕터 `legend`
+  - `rare`는 3배수 챕터 `legend`로 승급
+
+즉, 후반으로 갈수록 `rare/legend` 체감 빈도가 의도적으로 증가합니다.
+
+추가 튜닝(`eventType` 가중):
+- `battle`: `rare -> legend` 승격이 가장 빠름(후반 짝수 챕터 고강도)
+- `merchant`: `legend` 승격 빈도를 높여 고위험/고보상 거래 체감 강화
+- `town`: 승격 주기를 완만하게 유지해 안정 구간 역할 유지
+

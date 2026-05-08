@@ -15,6 +15,8 @@ export interface Character {
   name: string;
   description: string;
   rarity: Rarity;
+  className: string;
+  nation: string;
   element: Element;
   str: number;
   agi: number;
@@ -65,11 +67,26 @@ export interface MapStage {
   monsterIds: string[];
 }
 
+export type StoryEventType =
+  | "battle"
+  | "adventure"
+  | "companion"
+  | "merchant"
+  | "town"
+  | "fishing"
+  | "maze"
+  | "trap"
+  | "treasure";
+
 export interface StoryBranch {
   id: string;
   chapter: number;
   title: string;
   event: string;
+  eventType: StoryEventType;
+  eventTier?: "common" | "rare" | "legend";
+  rewardHint?: string;
+  riskHint?: string;
   optionA: string;
   optionB: string;
   optionC: string;

@@ -15,6 +15,8 @@ export interface Character {
   name: string;
   description: string;
   rarity: Rarity;
+  className: string;
+  nation: string;
   element: ElementType;
   str: number;
   agi: number;
@@ -75,11 +77,26 @@ export interface MapStage {
   monsterIds: string[];
 }
 
+export type StoryEventType =
+  | "battle"
+  | "adventure"
+  | "companion"
+  | "merchant"
+  | "town"
+  | "fishing"
+  | "maze"
+  | "trap"
+  | "treasure";
+
 export interface StoryBranch {
   id: string;
   chapter: number;
   title: string;
   event: string;
+  eventType: StoryEventType;
+  eventTier?: "common" | "rare" | "legend";
+  rewardHint?: string;
+  riskHint?: string;
   optionA: string;
   optionB: string;
   optionC: string;
@@ -116,17 +133,22 @@ export interface GachaState {
   pickupPityCount: number;
 }
 
-export type TrpgChoiceType = "origin" | "motive" | "stance";
+export type TrpgChoiceType = "element" | "origin" | "motive" | "stance";
 
 export interface TrpgDraft {
+  characterOptions: Array<{ id: string; name: string; rarity: Rarity; className: string; nation: string }>;
+  elementOptions: ElementType[];
   originOptions: string[];
   motiveOptions: string[];
   stanceOptions: string[];
-  selected: Partial<Record<TrpgChoiceType, string>>;
+  selected: Partial<Record<TrpgChoiceType, string>> & { characterId?: string; className?: string; nation?: string };
 }
 
 export interface TrpgSession {
   heroId: string;
+  className: string;
+  nation: string;
+  element: ElementType;
   origin: string;
   motive: string;
   stance: string;

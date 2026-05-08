@@ -21,6 +21,19 @@ export const SheetTable = ({
   onAddRow
 }: Props) => {
   const columns = useMemo(() => sheetSchemas[sheetName] ?? [], [sheetName]);
+  const rarityOptions = ["normal", "rare", "unique", "epic", "legendary"] as const;
+  const eventTypeOptions = [
+    "battle",
+    "adventure",
+    "companion",
+    "merchant",
+    "town",
+    "fishing",
+    "maze",
+    "trap",
+    "treasure"
+  ] as const;
+  const eventTierOptions = ["common", "rare", "legend"] as const;
 
   const updateCell = (idx: number, key: string, value: string) => {
     const next = rows.map((row, rowIdx) => (rowIdx === idx ? { ...row, [key]: value } : row));
@@ -84,6 +97,34 @@ export const SheetTable = ({
                       {skillOptions.map((skill) => (
                         <option key={`${idx}-${skill.id}`} value={skill.id}>
                           {skill.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : column === "rarity" ? (
+                    <select
+                      className={`rarity-cell rarity-${String(row[column] ?? "normal").toLowerCase()}`}
+                      value={String(row[column] ?? "normal")}
+                      onChange={(e) => updateCell(idx, column, e.target.value)}
+                    >
+                      {rarityOptions.map((rarity) => (
+                        <option key={`${idx}-rarity-${rarity}`} value={rarity}>
+                          {rarity}
+                        </option>
+                      ))}
+                    </select>
+                  ) : column === "eventType" ? (
+                    <select value={String(row[column] ?? "adventure")} onChange={(e) => updateCell(idx, column, e.target.value)}>
+                      {eventTypeOptions.map((option) => (
+                        <option key={`${idx}-eventType-${option}`} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : column === "eventTier" ? (
+                    <select value={String(row[column] ?? "common")} onChange={(e) => updateCell(idx, column, e.target.value)}>
+                      {eventTierOptions.map((option) => (
+                        <option key={`${idx}-eventTier-${option}`} value={option}>
+                          {option}
                         </option>
                       ))}
                     </select>

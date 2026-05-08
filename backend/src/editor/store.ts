@@ -1,4 +1,4 @@
-import { SheetBundle } from "../types";
+import type { SheetBundle, StoryEventType } from "../types";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import seedData from "../../data/sheets.json";
@@ -62,8 +62,39 @@ const normalizeRarity = (value: unknown): "normal" | "rare" | "unique" | "epic" 
   return "normal";
 };
 
+const ALL_STORY_EVENT_TYPES: StoryEventType[] = [
+  "battle",
+  "adventure",
+  "companion",
+  "merchant",
+  "town",
+  "fishing",
+  "maze",
+  "trap",
+  "treasure"
+];
+const STORY_EVENT_TYPE_SET = new Set<string>(ALL_STORY_EVENT_TYPES);
+const STORY_EVENT_ROTATION: StoryEventType[] = [
+  "adventure",
+  "fishing",
+  "battle",
+  "maze",
+  "merchant",
+  "trap",
+  "companion",
+  "treasure",
+  "town"
+];
+const defaultStoryEventForChapter = (chapter: number): StoryEventType =>
+  STORY_EVENT_ROTATION[(Math.max(1, chapter) - 1) % STORY_EVENT_ROTATION.length];
+
 const normalizeBundle = (raw: unknown): SheetBundle => {
   const incoming = (raw ?? {}) as Record<string, unknown>;
+  const branchTierByChapter = (chapter: number): "common" | "rare" | "legend" => {
+    if (chapter >= 55) return chapter % 6 === 0 ? "legend" : "rare";
+    if (chapter >= 35) return chapter % 4 === 0 ? "rare" : "common";
+    return "common";
+  };
   const normalizedSkills = Array.isArray(incoming.skills)
     ? incoming.skills.map((skill, index) => {
         const row = (skill ?? {}) as Record<string, unknown>;
@@ -100,6 +131,8 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
             name: String(character.name ?? `캐릭터 ${index + 1}`),
             description: String(character.description ?? "설명 없음"),
             rarity: normalizeRarity(character.rarity),
+            className: String(character.className ?? "방랑자"),
+            nation: String(character.nation ?? "무소속"),
             element: (character.element as "fire" | "water" | "nature" | "machine") ?? "fire",
             str: Number(character.str ?? 12),
             agi: Number(character.agi ?? 10),
@@ -139,6 +172,13 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
           chapter: Number(branch.chapter ?? index + 1),
           title: String(branch.title ?? `분기 ${index + 1}`),
           event: String(branch.event ?? "기록되지 않은 사건이 벌어졌다."),
+          eventType:
+            typeof branch.eventType === "string" && STORY_EVENT_TYPE_SET.has(branch.eventType)
+              ? (branch.eventType as StoryEventType)
+              : defaultStoryEventForChapter(Number(branch.chapter ?? index + 1)),
+          eventTier: (branch.eventTier as "common" | "rare" | "legend") ?? branchTierByChapter(Number(branch.chapter ?? index + 1)),
+          rewardHint: String(branch.rewardHint ?? "작은 보급과 기록 단서를 얻는다."),
+          riskHint: String(branch.riskHint ?? "상황 악화 시 체력과 자원을 소모할 수 있다."),
           optionA: String(branch.optionA ?? "정면 돌파"),
           optionB: String(branch.optionB ?? "우회 탐색"),
           optionC: String(branch.optionC ?? "침묵 유지"),

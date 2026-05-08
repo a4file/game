@@ -96,47 +96,60 @@ export const BibleEditorPanel = () => {
   };
 
   return (
-    <div className="bible-editor">
-      <div className="bible-toolbar">
-        <label className="bible-select-label">
-          문서
-          <select
-            value={selected}
-            onChange={(e) => {
-              onSelectFile(e.target.value);
-            }}
-            disabled={loadingList || files.length === 0}
-          >
-            {files.map((f) => (
-              <option key={f.name} value={f.name}>
-                {f.label} — {f.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="button" onClick={() => void loadFile(selected)} disabled={!selected}>
-          reload file
-        </button>
-        <button type="button" onClick={() => void saveFile()} disabled={!dirty || !selected}>
-          save bible
-        </button>
-      </div>
-      <p className="bible-hint">
-        Mythic Archive 마크다운. 저장 시 저장소의{" "}
-        <code>docs/mythic-archive/</code> 파일이 갱신됩니다.
-      </p>
-      <textarea
-        className="bible-textarea"
-        spellCheck={false}
-        value={content}
-        onChange={(e) => {
-          setContent(e.target.value);
-          setDirty(true);
-        }}
-        placeholder={loadingList ? "로딩 중…" : "내용이 여기에 표시됩니다."}
-      />
-      {error && <pre className="preview error-preview">{error}</pre>}
-      {status && <pre className="preview">{status}</pre>}
+    <div className="bible-editor-layout">
+      <aside className="bible-file-sidebar">
+        <div className="bible-sidebar-head">문서 목록</div>
+        <div className="bible-file-list">
+          {loadingList ? (
+            <p className="bible-sidebar-empty">로딩 중…</p>
+          ) : files.length === 0 ? (
+            <p className="bible-sidebar-empty">파일 없음</p>
+          ) : (
+            files.map((f) => (
+              <button
+                key={f.name}
+                type="button"
+                className={`bible-file-row ${selected === f.name ? "active" : ""}`}
+                onClick={() => onSelectFile(f.name)}
+              >
+                <span className="bible-file-label">{f.label}</span>
+                <small>{f.name}</small>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
+      <section className="bible-editor-main">
+        <div className="bible-toolbar">
+          <div className="bible-toolbar-title">
+            <span className="sheet-profile-badge">World Bible</span>
+            <span className="bible-current-file">{selected || "—"}</span>
+          </div>
+          <div className="bible-toolbar-actions">
+            <button type="button" onClick={() => void loadFile(selected)} disabled={!selected}>
+              reload file
+            </button>
+            <button type="button" className="primary" onClick={() => void saveFile()} disabled={!dirty || !selected}>
+              save bible
+            </button>
+          </div>
+        </div>
+        <p className="bible-hint">
+          Mythic Archive 마크다운. 저장 시 저장소의 <code>docs/mythic-archive/</code> 파일이 갱신됩니다.
+        </p>
+        <textarea
+          className="bible-textarea"
+          spellCheck={false}
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+            setDirty(true);
+          }}
+          placeholder={loadingList ? "로딩 중…" : "내용이 여기에 표시됩니다."}
+        />
+        {error && <pre className="preview error-preview">{error}</pre>}
+        {status && <pre className="preview bible-status-preview">{status}</pre>}
+      </section>
     </div>
   );
 };

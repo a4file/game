@@ -1,7 +1,7 @@
 export const baseHelp = [
   "/start",
   "/tutorial",
-  "choose origin|motive|stance 1|2|3",
+  "choose character|element|origin|motive|stance 1|2|3(|4 element)",
   "story choose A|B|C",
   "regress",
   "book shop",
