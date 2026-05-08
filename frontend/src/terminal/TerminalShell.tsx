@@ -5,6 +5,9 @@ import "@xterm/xterm/css/xterm.css";
 import { dosPalette } from "./theme";
 import { useRpgStore } from "../rpg/store";
 import { AdminEditorShell } from "../editor/AdminEditorShell";
+import { maxManaFromCharacter } from "../rpg/battle/formulas";
+
+const MOBILE_TAB_BREAKPOINT = "(max-width: 900px)";
 
 export const TerminalShell = () => {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -16,6 +19,10 @@ export const TerminalShell = () => {
   const executingRef = useRef(false);
   const [input, setInput] = useState("");
   const [editorEnabled, setEditorEnabled] = useState(false);
+  const [narrowViewport, setNarrowViewport] = useState(
+    typeof window !== "undefined" ? window.matchMedia(MOBILE_TAB_BREAKPOINT).matches : false
+  );
+  const [mobileShellTab, setMobileShellTab] = useState<"play" | "editor">("play");
   const [hintOpen, setHintOpen] = useState(false);
 
   const logs = useRpgStore((s) => s.logs);
@@ -31,6 +38,7 @@ export const TerminalShell = () => {
   const tutorialActive = useRpgStore((s) => s.tutorialActive);
   const tutorialStep = useRpgStore((s) => s.tutorialStep);
   const hero = roster[0];
+  const battle = useRpgStore((s) => s.battle);
   const statusClass = trpgSession?.className ?? trpgDraft?.selected.className ?? hero?.className ?? "미정";
   const statusNation = trpgSession?.nation ?? trpgDraft?.selected.nation ?? hero?.nation ?? "미정";
   const statusElement = trpgSession?.element ?? trpgDraft?.selected.element ?? hero?.element ?? "미정";
@@ -38,6 +46,12 @@ export const TerminalShell = () => {
     () => (hero ? `rarity-badge rarity-${hero.rarity}` : "rarity-badge"),
     [hero]
   );
+  const manaMax = hero ? maxManaFromCharacter(hero) : 0;
+  const hpMax = hero?.hp ?? 0;
+  const hpCurrent = hero ? (battle ? battle.playerHp : hero.hp) : 0;
+  const mpCurrent = battle ? battle.playerMp : manaMax;
+  const mpMax = battle?.playerMaxMp ?? manaMax;
+  const atkDisplay = hero?.atk ?? 0;
   const choiceMode = useMemo(() => {
     if (trpgDraft) {
       if (!trpgDraft.selected.characterId) return "character";
@@ -159,9 +173,26 @@ export const TerminalShell = () => {
   }, [editorEnabled, loadBundle]);
 
   useEffect(() => {
+    const mq = window.matchMedia(MOBILE_TAB_BREAKPOINT);
+    const sync = () => setNarrowViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!editorEnabled) {
+      setMobileShellTab("play");
+    }
+  }, [editorEnabled]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("editor") === "1") {
       setEditorEnabled(true);
+      if (typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
+        setMobileShellTab("editor");
+      }
     }
   }, []);
 
@@ -216,8 +247,14 @@ export const TerminalShell = () => {
     executingRef.current = true;
     try {
       const normalized = cmd.startsWith("/") ? cmd.slice(1) : cmd;
-      if (normalized === "editor on") setEditorEnabled(true);
-      if (normalized === "editor off") setEditorEnabled(false);
+      const low = normalized.toLowerCase();
+      if (low === "editor on") {
+        setEditorEnabled(true);
+        if (typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
+          setMobileShellTab("editor");
+        }
+      }
+      if (low === "editor off") setEditorEnabled(false);
       await runCommand(cmd);
       setInput("");
     } finally {
@@ -271,12 +308,74 @@ export const TerminalShell = () => {
     return () => disposable.dispose();
   }, []);
 
+  useEffect(() => {
+    const term = termRef.current;
+    const fit = fitRef.current;
+    if (!term || !fit) return;
+    term.options.fontSize = narrowViewport ? 12 : 14;
+    fit.fit();
+  }, [narrowViewport]);
+
+  const showMobileEditorTabs = narrowViewport && editorEnabled;
+  const showTerminalPanel =
+    !narrowViewport || !editorEnabled || mobileShellTab === "play";
+  const showEditorPanel =
+    editorEnabled &&
+    ((!narrowViewport && Boolean(bundle)) || (narrowViewport && mobileShellTab === "editor"));
+
+  useEffect(() => {
+    const fit = fitRef.current;
+    if (!fit || !showTerminalPanel || !mountRef.current) return;
+    const id = window.requestAnimationFrame(() => {
+      fit.fit();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [showTerminalPanel, narrowViewport, mobileShellTab, editorEnabled]);
+
   return (
-    <div className="terminal-layout">
-      <section className="terminal-panel">
+    <div
+      className={`terminal-root ${showMobileEditorTabs ? "terminal-root--shell-tabs" : ""}`}
+    >
+      {showMobileEditorTabs && (
+        <div className="mobile-shell-tabs" role="tablist" aria-label="화면 전환">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileShellTab === "play"}
+            className={mobileShellTab === "play" ? "active" : ""}
+            onClick={() => setMobileShellTab("play")}
+          >
+            플레이
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileShellTab === "editor"}
+            className={mobileShellTab === "editor" ? "active" : ""}
+            onClick={() => setMobileShellTab("editor")}
+          >
+            시트 에디터
+          </button>
+        </div>
+      )}
+      <div
+        className={`terminal-layout ${showMobileEditorTabs && mobileShellTab === "editor" ? "terminal-layout--editor-tab" : ""}`}
+      >
+      <section
+        className={`terminal-panel ${!showTerminalPanel ? "terminal-panel--tab-hidden" : ""}`}
+      >
         <div className="status-bar">
-          <span className="status-item">NAME: {hero?.name ?? "-"}</span>
+          <span className="status-item status-id">NAME: {hero?.name ?? "-"}</span>
           <span className="status-item">LV: {hero?.level ?? 0}</span>
+          <span className="status-item status-hp" title="체력">
+            {hero ? `HP: ${hpCurrent}/${Math.max(hpMax, 1)}` : "HP: -"}
+          </span>
+          <span className="status-item status-mp" title="마력 · 전투에서 스킬 사용 시 소모">
+            {hero ? `MP: ${mpCurrent}/${Math.max(mpMax, 1)}` : "MP: -"}
+          </span>
+          <span className="status-item status-atk" title="공격력">
+            ATK: {hero ? atkDisplay : "-"}
+          </span>
           <span className="status-item">CLASS: {statusClass}</span>
           <span className="status-item">NATION: {statusNation}</span>
           <span className="status-item">ELEMENT: {String(statusElement).toUpperCase()}</span>
@@ -363,7 +462,18 @@ export const TerminalShell = () => {
             <button type="button" onClick={() => void runQuickCommand("load")}>
               load
             </button>
-            <button type="button" onClick={() => setEditorEnabled((prev) => !prev)}>
+            <button
+              type="button"
+              onClick={() => {
+                setEditorEnabled((prev) => {
+                  const next = !prev;
+                  if (next && typeof window !== "undefined" && window.matchMedia(MOBILE_TAB_BREAKPOINT).matches) {
+                    setMobileShellTab("editor");
+                  }
+                  return next;
+                });
+              }}
+            >
               {editorEnabled ? "editor off" : "editor on"}
             </button>
           </div>
@@ -374,7 +484,22 @@ export const TerminalShell = () => {
           </div>
         )}
       </section>
-      {editorEnabled && bundle && <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />}
+      {showEditorPanel &&
+        (bundle ? (
+          <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />
+        ) : (
+          <section className="admin-shell editor-bundle-placeholder" aria-live="polite">
+            <h3 className="admin-shell-title">시트 에디터</h3>
+            <p>
+              번들이 아직 없습니다. 터미널에서 <code>reload-bundle</code> 또는 <code>diag</code>로 로드 상태를 확인한 뒤
+              다시 열어 주세요.
+            </p>
+            <p className="editor-bundle-placeholder-hint">
+              플레이 탭으로 돌아가려면 위의 <strong>플레이</strong>를 누르세요.
+            </p>
+          </section>
+        ))}
+    </div>
     </div>
   );
 };

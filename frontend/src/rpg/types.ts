@@ -125,6 +125,8 @@ export interface BattleState {
   turn: number;
   playerHp: number;
   enemyHp: number;
+  playerMp: number;
+  playerMaxMp: number;
   log: string[];
 }
 

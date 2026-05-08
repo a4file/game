@@ -401,6 +401,12 @@ const normalizeBundle = (raw: SheetBundle): SheetBundle => {
   };
 };
 
+const isLikelySheetBundle = (payload: unknown): payload is SheetBundle => {
+  if (payload === null || typeof payload !== "object") return false;
+  const row = payload as Record<string, unknown>;
+  return Array.isArray(row.characters) && row.characters.length > 0 && Array.isArray(row.skills);
+};
+
 const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const trimNameSuffix = (name: string): string => name.replace(/\s+\d+$/, "").trim();
 
@@ -467,26 +473,44 @@ export const useRpgStore = create<GameStore>((set, get) => ({
     const bundleReqLabel = `${apiBaseUrl.replace(/\/?$/, "")}/content/bundle`;
     const lines: string[] = [`[NET] 번들 로드 시도 → ${bundleReqLabel}`];
     let data: SheetBundle | undefined;
-    let loadSource: "api" | "fallback" | null = null;
+    let resolvedSource: "api" | "fallback" | null = null;
+
     try {
-      const res = await api.get<SheetBundle>("/content/bundle");
-      data = res.data;
-      loadSource = "api";
-      lines.push(`[NET] API 응답 OK (characters ${Array.isArray(data?.characters) ? data.characters.length : "?"})`);
+      const res = await api.get("/content/bundle");
+      const payload = res.data;
+      lines.push(`[NET] API HTTP ${res.status}`);
+      if (typeof payload === "string") {
+        lines.push(`[NET] 본문이 문자열입니다(SPA HTML이 /api 라우팅 우회로 넘어온 경우 많음). 길이 ${payload.length}`);
+        lines.push(`[NET] 앞부분: ${payload.slice(0, 120).replace(/\s+/g, " ")}…`);
+      } else if (!isLikelySheetBundle(payload)) {
+        lines.push("[NET] 본문이 게임 번들 스키마가 아닙니다(non-array characters 또는 비어 있음).");
+      } else {
+        data = payload;
+        resolvedSource = "api";
+        lines.push(`[NET] 번들 검증 OK (characters ${payload.characters.length}, skills ${payload.skills.length})`);
+      }
     } catch (e) {
       lines.push(...formatApiFailure(e, bundleReqLabel));
-      loadSource = "fallback";
+    }
+
+    if (!data) {
       const baseUrl = import.meta.env.BASE_URL ?? "/";
       const prefix = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
       const fallbackUrl = `${prefix}sheets-fallback.json`;
-      lines.push(`[NET] 폴백 시도 → ${fallbackUrl}`);
+      lines.push(`[NET] 정적 폴백 시도 → ${fallbackUrl}`);
       try {
         const res = await fetch(fallbackUrl);
         if (!res.ok) {
           lines.push(...formatFetchFailure(res.status, res.statusText, fallbackUrl));
         } else {
-          data = await res.json();
-          lines.push("[NET] 정적 폴백 sheets-fallback.json 로드 성공");
+          const parsed = await res.json();
+          if (isLikelySheetBundle(parsed)) {
+            data = parsed;
+            resolvedSource = "fallback";
+            lines.push("[NET] sheets-fallback.json 검증 통과");
+          } else {
+            lines.push("[NET] 폴백 JSON도 번들 형식이 아닙니다.");
+          }
         }
       } catch (fe) {
         lines.push(...formatApiFailure(fe, fallbackUrl));
@@ -496,7 +520,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
     const atMs = Date.now();
 
     if (!data) {
-      lines.push("[ERR] 번들 로드 최종 실패: API 불가 · 폴백 JSON 없음. `diag` 명령으로 재확인.");
+      lines.push("[ERR] 번들 로드 최종 실패. `reload-bundle`, `diag` 후 Vercel Root=repo 루트(api 포함) 확인.");
       console.error("[TerminalRPG] bundle load failed\n", lines.join("\n"));
       set({
         bundle: null,
@@ -514,14 +538,14 @@ export const useRpgStore = create<GameStore>((set, get) => ({
 
     const normalized = normalizeBundle(data);
     const bundleLogs = get().logs;
-    if (loadSource === "fallback") {
-      lines.push("[NET] 현재 번들 소스: 정적 JSON — 에디터 저장·AI는 백엔드 필요.");
+    if (resolvedSource === "fallback") {
+      lines.push("[NET] 현재 번들 소스: 정적 JSON — API가 무효/다운됨. 에디터 저장·AI는 /api 필요.");
     }
     set({
       bundle: normalized,
       bundleConnection: {
         ok: true,
-        source: loadSource ?? "api",
+        source: resolvedSource,
         apiBaseUrl,
         atMs,
         lines: lines.slice(-24)
@@ -551,6 +575,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
   runCommand: async (raw) => {
     const command = raw.trim();
     const normalized = command.startsWith("/") ? command.slice(1) : command;
+    const lower = normalized.toLowerCase();
     const state = get();
     const push = (line: string) => set({ logs: [...get().logs, line].slice(-140) });
 
@@ -560,11 +585,15 @@ export const useRpgStore = create<GameStore>((set, get) => ({
     };
 
     const beginTrpg = () => {
-      if (!state.bundle || state.roster.length === 0) {
-        push("[ERR] bundle not loaded — 백엔드·폴백 JSON 로드에 실패했을 수 있습니다.");
+      if (!state.bundle) {
+        push("[ERR] bundle not loaded — 번들이 없습니다. `reload-bundle` 후 `diag`.");
         const detail = get().bundleConnection.lines;
         detail.slice(-8).forEach((line) => push(line));
-        push("[ERR] `diag` 로 원인 확인 후 `reload-bundle` 으로 재시도하세요.");
+        return;
+      }
+      if (state.roster.length === 0) {
+        push("[ERR] roster 비어 있음 — 마지막 API 응답이 HTML 또는 빈 번들이었을 수 있습니다. `reload-bundle` (정적 폴백 포함) 후 재시도.");
+        get().bundleConnection.lines.slice(-6).forEach((line) => push(line));
         return;
       }
       const normalPool = state.roster.filter((c) => c.rarity === "normal");
@@ -984,7 +1013,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       }
     };
 
-    if (normalized === "start") {
+    if (lower === "start") {
       beginTrpg();
       return;
     }
@@ -1026,7 +1055,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       push("[SYS] 지금은 숫자 단축 입력을 받을 단계가 아닙니다. /start 또는 story를 확인하세요.");
       return;
     }
-    if (normalized === "tutorial") {
+    if (lower === "tutorial") {
       startTutorial();
       return;
     }
@@ -1048,7 +1077,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    if (normalized === "diag" || normalized === "netdiag") {
+    if (lower === "diag" || lower === "netdiag") {
       const cur = get().bundleConnection;
       const explicit = import.meta.env.VITE_API_BASE_URL;
       push("+======== NET DIAG =========+");
@@ -1060,10 +1089,27 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       push(`| bundle source: ${cur.source ?? "none"}`);
       push(`| last load: ${cur.atMs ? new Date(cur.atMs).toISOString() : "—"}`);
       try {
-        const h = await api.get<{ ok?: boolean }>("/health");
-        push(`| GET /health → HTTP ${h.status} ${JSON.stringify(h.data)}`);
+        const base = cur.apiBaseUrl.replace(/\/?$/, "");
+        const healthUrl = /^https?:\/\//i.test(cur.apiBaseUrl)
+          ? `${base}/health`
+          : `${window.location.origin}${cur.apiBaseUrl.startsWith("/") ? base : `/${base}`}/health`;
+        const res = await fetch(healthUrl, { method: "GET", headers: { Accept: "application/json, text/plain;q=0.8" } });
+        const ct = res.headers.get("content-type") ?? "";
+        const body = await res.text();
+        if (!ct.includes("application/json")) {
+          push(`| GET /health → HTTP ${res.status}, Content-Type: ${ct || "(없음)"} (JSON 아님)`);
+          push("| 힌트: /api 가 index.html로만 응답하면 Vercel Root가 repo 루트인지(api 디렉터리 포함) 확인하세요.");
+          push(`| 본문 앞: ${body.slice(0, 140).replace(/\n/g, " ")}…`);
+        } else {
+          try {
+            const json = JSON.parse(body) as { ok?: boolean };
+            push(`| GET /health → HTTP ${res.status} ${JSON.stringify(json)}`);
+          } catch {
+            push(`| GET /health → HTTP ${res.status}, JSON 파싱 실패`);
+          }
+        }
       } catch (e) {
-        formatApiFailure(e, `${cur.apiBaseUrl.replace(/\/?$/, "")}/health`).forEach((ln) => push(`| ${ln}`));
+        push(`| GET /health fetch 실패: ${e instanceof Error ? e.message : String(e)}`);
       }
       push("| 번들 로그(최근):");
       cur.lines.slice(-12).forEach((ln) => push(`| ${ln}`));
@@ -1071,16 +1117,16 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    if (normalized === "reload-bundle") {
+    if (lower === "reload-bundle") {
       push("[NET] 번들 재로드 중…");
       await get().loadBundle();
       push(`[NET] 완료 (${get().bundleConnection.ok ? "ok" : "fail"})`);
       return;
     }
 
-    if (normalized === "help") {
+    if (lower === "help") {
       push(
-        "commands: /start, diag, reload-bundle, choose character|element|origin|motive|stance 1|2|3(|4 for element), story, story choose A|B|C, regress, book shop, book buy [...], /tutorial, profile, gacha, battle, adventure, inventory, list [...], save, load, editor on/off"
+        "commands: /start, diag(대소문자 무관), reload-bundle, choose character|element|origin|motive|stance 1|2|3(|4 for element), story, story choose A|B|C, regress, book shop, book buy [...], /tutorial, profile, gacha, battle, adventure, inventory, list [...], save, load, editor on/off"
       );
       return;
     }

@@ -16,6 +16,8 @@ export const requestBattleDecision = async (
       turn: battleState.turn,
       playerHp: battleState.playerHp,
       enemyHp: battleState.enemyHp,
+      playerMp: battleState.playerMp,
+      playerMaxMp: battleState.playerMaxMp,
       playerElement: player.element,
       enemyElement: enemy.element
     }

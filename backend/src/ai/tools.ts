@@ -10,12 +10,17 @@ const advantageMap: Record<string, string> = {
 export const getBattleStateSummary = (input: BattleDecisionRequest["battleState"]): string => {
   const elementalAdv =
     advantageMap[input.playerElement] === input.enemyElement ? "player-advantage" : "neutral-or-disadvantage";
-  return `turn=${input.turn}, playerHp=${input.playerHp}, enemyHp=${input.enemyHp}, elemental=${elementalAdv}`;
+  const mp =
+    typeof input.playerMp === "number"
+      ? `, mp=${input.playerMp}${typeof input.playerMaxMp === "number" ? `/${input.playerMaxMp}` : ""}`
+      : "";
+  return `turn=${input.turn}, playerHp=${input.playerHp}, enemyHp=${input.enemyHp}${mp}, elemental=${elementalAdv}`;
 };
 
 export const fallbackBattleDecision = (input: BattleDecisionRequest["battleState"]): string => {
+  const skimpyMp = typeof input.playerMp === "number" ? input.playerMp < 16 : false;
   if (input.playerHp < 45) return "DEFEND";
-  if (input.enemyHp < 35) return "SKILL";
+  if (input.enemyHp < 35 && !skimpyMp) return "SKILL";
   return "ATTACK";
 };
 

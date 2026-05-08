@@ -114,6 +114,9 @@ export interface BattleDecisionRequest {
     enemyHp: number;
     playerElement: Element;
     enemyElement: Element;
+    /** 전투 UI 마력(클라이언트에서만 채워질 수 있음) */
+    playerMp?: number;
+    playerMaxMp?: number;
     status?: string[];
   };
 }
