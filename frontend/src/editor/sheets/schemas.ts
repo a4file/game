@@ -1,4 +1,5 @@
 export const sheetSchemas: Record<string, string[]> = {
+  stories: ["id", "title", "theme", "world", "characters", "monsters", "systems", "beats"],
   maps: ["id", "name", "recommendedPower", "monsterIds"],
   characters: [
     "id",

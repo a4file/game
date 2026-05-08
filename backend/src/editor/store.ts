@@ -4,6 +4,7 @@ import path from "node:path";
 import seedData from "../../data/sheets.json";
 
 export type EditableSheetName =
+  | "stories"
   | "maps"
   | "characters"
   | "monsters"
@@ -88,6 +89,44 @@ const STORY_EVENT_ROTATION: StoryEventType[] = [
 const defaultStoryEventForChapter = (chapter: number): StoryEventType =>
   STORY_EVENT_ROTATION[(Math.max(1, chapter) - 1) % STORY_EVENT_ROTATION.length];
 
+const toStoryBranchesFromStories = (stories: Array<Record<string, unknown>>) => {
+  const branchTierByChapter = (chapter: number): "common" | "rare" | "legend" => {
+    if (chapter >= 55) return chapter % 6 === 0 ? "legend" : "rare";
+    if (chapter >= 35) return chapter % 4 === 0 ? "rare" : "common";
+    return "common";
+  };
+  let globalChapterCursor = 1;
+  return stories.flatMap((story, storyIndex) => {
+    const storyId = String(story.id ?? `story-${String(storyIndex + 1).padStart(3, "0")}`);
+    const beats = Array.isArray(story.beats) ? (story.beats as Array<Record<string, unknown>>) : [];
+    return beats.flatMap((beat, beatIndex) => {
+      const sequences = Array.isArray(beat.sequences) ? (beat.sequences as Array<Record<string, unknown>>) : [];
+      return sequences.flatMap((sequence, sequenceIndex) => {
+        const scenes = Array.isArray(sequence.scenes) ? (sequence.scenes as Array<Record<string, unknown>>) : [];
+        return scenes.map((scene, sceneIndex) => {
+          const chapter = globalChapterCursor++;
+          return {
+            id: `${storyId}-b${String(beatIndex + 1).padStart(2, "0")}s${String(sequenceIndex + 1).padStart(2, "0")}c${String(sceneIndex + 1).padStart(2, "0")}`,
+            chapter,
+            title: String(scene.title ?? `Beat ${beatIndex + 1} Scene ${sceneIndex + 1}`),
+            event: String(scene.event ?? "기록되지 않은 사건이 벌어졌다."),
+            eventType: defaultStoryEventForChapter(chapter),
+            eventTier: branchTierByChapter(chapter),
+            rewardHint: "작은 보급과 기록 단서를 얻는다.",
+            riskHint: "상황 악화 시 체력과 자원을 소모할 수 있다.",
+            optionA: "정면 돌파",
+            optionB: "우회 탐색",
+            optionC: "침묵 유지",
+            flagA: `${storyId}_ch${chapter}_A`,
+            flagB: `${storyId}_ch${chapter}_B`,
+            flagC: `${storyId}_ch${chapter}_C`
+          };
+        });
+      });
+    });
+  });
+};
+
 const normalizeBundle = (raw: unknown): SheetBundle => {
   const incoming = (raw ?? {}) as Record<string, unknown>;
   const branchTierByChapter = (chapter: number): "common" | "rare" | "legend" => {
@@ -110,6 +149,24 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
     : [];
 
   const skillNameToId = new Map(normalizedSkills.map((skill) => [skill.name, skill.id]));
+
+  const normalizedStories = Array.isArray(incoming.stories)
+    ? (incoming.stories as Array<Record<string, unknown>>).map((story, index) => ({
+        id: String(story.id ?? `story-${String(index + 1).padStart(3, "0")}`),
+        title: String(story.title ?? `STORY${index + 1}`),
+        theme: String(story.theme ?? "주제를 입력하세요."),
+        world: String(story.world ?? "세계관을 입력하세요."),
+        characters: toStringArray(story.characters),
+        monsters: toStringArray(story.monsters),
+        systems: toStringArray(story.systems),
+        beats: Array.isArray(story.beats) ? story.beats : []
+      }))
+    : [];
+  const inferredStoryBranches = toStoryBranchesFromStories(normalizedStories);
+  const storyBranchSource =
+    Array.isArray(incoming.storyBranches) && incoming.storyBranches.length > 0
+      ? (incoming.storyBranches as Array<Record<string, unknown>>)
+      : inferredStoryBranches;
 
   return {
     version: Number(incoming.version ?? 1),
@@ -166,8 +223,8 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
           };
         })
       : [],
-    storyBranches: Array.isArray(incoming.storyBranches)
-      ? (incoming.storyBranches as Array<Record<string, unknown>>).map((branch, index) => ({
+    stories: normalizedStories,
+    storyBranches: storyBranchSource.map((branch, index) => ({
           id: String(branch.id ?? `sb-${String(index + 1).padStart(3, "0")}`),
           chapter: Number(branch.chapter ?? index + 1),
           title: String(branch.title ?? `분기 ${index + 1}`),
@@ -185,8 +242,7 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
           flagA: String(branch.flagA ?? `branch_${index + 1}_A`),
           flagB: String(branch.flagB ?? `branch_${index + 1}_B`),
           flagC: String(branch.flagC ?? `branch_${index + 1}_C`)
-        }))
-      : [],
+        })),
     skills: normalizedSkills,
     weapons: Array.isArray(incoming.weapons)
       ? (incoming.weapons as Array<Record<string, unknown>>).map((weapon, index) => ({

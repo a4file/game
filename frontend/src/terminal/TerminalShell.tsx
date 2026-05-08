@@ -486,7 +486,7 @@ export const TerminalShell = () => {
           </div>
         )}
       </section>
-      {showEditorPanel && <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />}
+      {showEditorPanel && bundle && <AdminEditorShell bundle={bundle} onUpdateBundle={setBundle} />}
       {showEditorPlaceholder && (
         <section className="admin-shell editor-bundle-placeholder" aria-live="polite">
           <h3 className="admin-shell-title">시트 에디터</h3>

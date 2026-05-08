@@ -105,10 +105,41 @@ export interface StoryBranch {
   flagC: string;
 }
 
+export interface StoryScene {
+  id: string;
+  title: string;
+  event: string;
+  dramaticBeats: string[];
+}
+
+export interface StorySequence {
+  id: string;
+  title: string;
+  scenes: StoryScene[];
+}
+
+export interface StoryBeat {
+  id: string;
+  title: string;
+  sequences: StorySequence[];
+}
+
+export interface StorySheet {
+  id: string;
+  title: string;
+  theme: string;
+  world: string;
+  characters: string[];
+  monsters: string[];
+  systems: string[];
+  beats: StoryBeat[];
+}
+
 export interface SheetBundle {
   maps: MapStage[];
   characters: Omit<Character, "level" | "currentPage" | "awaken" | "equipped">[];
   monsters: Monster[];
+  stories: StorySheet[];
   storyBranches: StoryBranch[];
   skills: Skill[];
   weapons: Omit<Equipment, "enhance">[];

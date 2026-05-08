@@ -69,6 +69,7 @@ editorRouter.post("/sheets", async (req, res) => {
 editorRouter.patch("/sheet/:name", async (req, res) => {
   const sheetName = req.params.name as EditableSheetName;
   const editable: EditableSheetName[] = [
+    "stories",
     "maps",
     "characters",
     "monsters",

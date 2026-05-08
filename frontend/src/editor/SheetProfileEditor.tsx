@@ -46,6 +46,14 @@ const normalizeStringArray = (raw: unknown): string[] => {
 const arrayToLines = (raw: unknown): string =>
   Array.isArray(raw) ? raw.map((entry) => String(entry)).join("\n") : "";
 
+const prettyJson = (raw: unknown): string => {
+  try {
+    return JSON.stringify(raw ?? [], null, 2);
+  } catch {
+    return "[]";
+  }
+};
+
 export const SheetProfileEditor = ({ sheetName, title, rows, skillOptions, onChange }: Props) => {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -136,6 +144,34 @@ export const SheetProfileEditor = ({ sheetName, title, rows, skillOptions, onCha
                   .filter(Boolean)
               )
             }
+          />
+        </label>
+      );
+    }
+
+    if (column === "characters" || column === "monsters" || column === "systems") {
+      return (
+        <label key={column} className="detail-span-2">
+          {column} (한 줄에 하나 또는 쉼표)
+          <textarea value={arrayToLines(value)} onChange={(e) => updateSelected(column, normalizeStringArray(e.target.value))} />
+        </label>
+      );
+    }
+
+    if (column === "beats") {
+      return (
+        <label key={column} className="detail-span-2">
+          beats (JSON)
+          <textarea
+            value={prettyJson(value)}
+            onChange={(e) => {
+              try {
+                const parsed = JSON.parse(e.target.value);
+                if (Array.isArray(parsed)) updateSelected("beats", parsed);
+              } catch {
+                // Keep editor resilient while typing invalid JSON.
+              }
+            }}
           />
         </label>
       );
@@ -302,6 +338,9 @@ export const SheetProfileEditor = ({ sheetName, title, rows, skillOptions, onCha
   };
 
   const listLabel = (row: SheetRow) => {
+    if (sheetName === "stories") {
+      return String(row.title ?? row.id ?? "-");
+    }
     if (sheetName === "storyBranches") {
       const ch = Number(row.chapter) || 1;
       const t = stripLegacyChapterPrefix(String(row.title ?? ""));
@@ -311,6 +350,10 @@ export const SheetProfileEditor = ({ sheetName, title, rows, skillOptions, onCha
   };
 
   const listSub = (row: SheetRow) => {
+    if (sheetName === "stories") {
+      const beatCount = Array.isArray(row.beats) ? row.beats.length : 0;
+      return `${String(row.id ?? "-")} · ${beatCount} beats`;
+    }
     if (sheetName === "storyBranches") {
       const ch = Number(row.chapter) || 1;
       return `${formatStoryPageLabel(ch)} · ${String(row.eventType ?? "")}`;

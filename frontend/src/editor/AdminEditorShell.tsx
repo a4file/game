@@ -11,11 +11,12 @@ import type { SheetBundle } from "../rpg/types";
 import { getApiBaseUrl } from "../apiBase";
 import { formatApiFailure } from "../apiErrors";
 
-const tabsConst = ["maps", "characters", "monsters", "storyBranches", "skills", "weapons", "items", "equipments"] as const;
+const tabsConst = ["stories", "maps", "characters", "monsters", "storyBranches", "skills", "weapons", "items", "equipments"] as const;
 type SheetTab = (typeof tabsConst)[number];
 type EditorPanel = SheetTab | "bible";
 
 const panelTitles: Record<EditorPanel, string> = {
+  stories: "스토리 시트",
   maps: "맵 / 스테이지",
   characters: "캐릭터",
   monsters: "몬스터",
@@ -33,7 +34,7 @@ interface Props {
 }
 
 export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
-  const [panel, setPanel] = useState<EditorPanel>("characters");
+  const [panel, setPanel] = useState<EditorPanel>("stories");
   const [prompt, setPrompt] = useState("");
   const [preview, setPreview] = useState("");
   const [error, setError] = useState("");
@@ -126,6 +127,7 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
   };
 
   const idPrefixMap: Record<string, string> = {
+    stories: "story-",
     maps: "st-",
     characters: "c-",
     monsters: "m-",
@@ -151,6 +153,29 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
       else if (column.startsWith("option")) row[column] = column === "optionA" ? "선택 A" : column === "optionB" ? "선택 B" : "선택 C";
       else if (column.startsWith("flag")) row[column] = `branch_${nextIndex}_${column.slice(-1)}`;
       else if (column === "monsterIds" || column === "skillIds" || column === "storyPages") row[column] = [];
+      else if (column === "characters" || column === "monsters" || column === "systems") row[column] = [];
+      else if (column === "theme") row[column] = "새로운 이야기의 주제";
+      else if (column === "world") row[column] = "새로운 이야기의 무대";
+      else if (column === "beats") {
+        row[column] = Array.from({ length: 12 }, (_, beatIndex) => ({
+          id: `beat-${String(beatIndex + 1).padStart(2, "0")}`,
+          title: `Beat ${beatIndex + 1}`,
+          sequences: [
+            {
+              id: `sequence-${String(beatIndex + 1).padStart(2, "0")}-01`,
+              title: `Sequence ${beatIndex + 1}-1`,
+              scenes: [
+                {
+                  id: `scene-${String(beatIndex + 1).padStart(2, "0")}-01-01`,
+                  title: `Scene ${beatIndex + 1}-1-1`,
+                  event: "장면 본문을 입력하세요.",
+                  dramaticBeats: ["긴장 상승", "반전", "감정 여운"]
+                }
+              ]
+            }
+          ]
+        }));
+      }
       else if (column === "description" || column === "effect") row[column] = "";
       else if (column === "rarity") row[column] = "normal";
       else if (column === "eventType") row[column] = "adventure";
@@ -203,7 +228,7 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
         <aside className="editor-tree">
           <p className="tree-folder">sheet/</p>
           <p className="tree-folder">world · 세계</p>
-          {(["maps", "characters", "monsters", "storyBranches"] as const).map((name) => (
+          {(["stories", "maps", "characters", "monsters", "storyBranches"] as const).map((name) => (
             <button
               key={name}
               className={`tree-item ${panel === name ? "active" : ""}`}

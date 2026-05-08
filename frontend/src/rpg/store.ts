@@ -375,13 +375,58 @@ const normalizeBundle = (raw: SheetBundle): SheetBundle => {
       rarity: normalizeRarity(row.rarity),
       skillIds: toStringArray(row.skillIds)
     }));
+  const normalizedStories = Array.isArray((raw as unknown as { stories?: unknown }).stories)
+    ? ((raw as unknown as { stories?: Array<Record<string, unknown>> }).stories ?? []).map((story, index) => ({
+        id: String(story.id ?? `story-${String(index + 1).padStart(3, "0")}`),
+        title: String(story.title ?? `STORY${index + 1}`),
+        theme: String(story.theme ?? "주제를 입력하세요."),
+        world: String(story.world ?? "세계관을 입력하세요."),
+        characters: toStringArray(story.characters),
+        monsters: toStringArray(story.monsters),
+        systems: toStringArray(story.systems),
+        beats: Array.isArray(story.beats) ? story.beats : []
+      }))
+    : [];
+  let globalChapterCursor = 1;
+  const flattenedFromStories = normalizedStories.flatMap((story) => {
+    const beats = Array.isArray(story.beats) ? story.beats : [];
+    return beats.flatMap((beat, beatIndex) => {
+      const sequences = Array.isArray((beat as { sequences?: unknown }).sequences)
+        ? ((beat as { sequences?: Array<Record<string, unknown>> }).sequences ?? [])
+        : [];
+      return sequences.flatMap((sequence, sequenceIndex) => {
+        const scenes = Array.isArray(sequence.scenes) ? sequence.scenes : [];
+        return scenes.map((scene, sceneIndex) => {
+          const chapter = globalChapterCursor++;
+          return {
+            id: `${story.id}-b${String(beatIndex + 1).padStart(2, "0")}s${String(sequenceIndex + 1).padStart(2, "0")}c${String(sceneIndex + 1).padStart(2, "0")}`,
+            chapter,
+            title: String(scene.title ?? `Beat ${beatIndex + 1} Scene ${sceneIndex + 1}`),
+            event: String(scene.event ?? "기록되지 않은 사건이 벌어졌다."),
+            eventType: defaultStoryEventForChapter(chapter),
+            eventTier: branchTierByChapter(chapter),
+            rewardHint: "작은 보급과 기록 단서를 얻는다.",
+            riskHint: "상황 악화 시 체력과 자원을 소모할 수 있다.",
+            optionA: "정면 돌파",
+            optionB: "우회 탐색",
+            optionC: "침묵 유지",
+            flagA: `${story.id}_ch${chapter}_A`,
+            flagB: `${story.id}_ch${chapter}_B`,
+            flagC: `${story.id}_ch${chapter}_C`
+          };
+        });
+      });
+    });
+  });
+  const sourceStoryBranches = Array.isArray(raw.storyBranches) && raw.storyBranches.length > 0 ? raw.storyBranches : flattenedFromStories;
   return {
     ...raw,
     skills,
     characters: normalizedCharacters,
     monsters: normalizedMonsters,
-    storyBranches: Array.isArray(raw.storyBranches)
-      ? raw.storyBranches.map((branch, index) => {
+    stories: normalizedStories,
+    storyBranches: Array.isArray(sourceStoryBranches)
+      ? sourceStoryBranches.map((branch, index) => {
           const chapter = Number(branch.chapter ?? index + 1);
           return {
             ...branch,
