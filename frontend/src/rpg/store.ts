@@ -9,11 +9,27 @@ import { fallbackBranchLine, fallbackCompanionLine } from "./ai/fallbacks";
 import { equipToCharacter } from "./progression/equipment";
 import { levelUp } from "./progression/characterGrowth";
 import { getApiBaseUrl } from "../apiBase";
+import { formatApiFailure, formatFetchFailure } from "../apiErrors";
 import { formatStoryPageLabel, formatStorySceneTitle, stripLegacyChapterPrefix } from "./storyLabels";
 
 const api = axios.create({
-  baseURL: getApiBaseUrl()
+  baseURL: getApiBaseUrl(),
+  timeout: 25_000
 });
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const cfg = axios.isAxiosError(err) ? err.config : undefined;
+    const path = cfg?.url ?? "";
+    const basePart = String(cfg?.baseURL ?? "").replace(/\/?$/, "");
+    const combined = `${basePart}${path.startsWith("/") ? "" : "/"}${path}`;
+    formatApiFailure(err, combined || "API").forEach((line) => {
+      console.warn("[TerminalRPG]", line);
+    });
+    return Promise.reject(err);
+  }
+);
 
 interface GameStore {
   bundle: SheetBundle | null;
@@ -36,6 +52,14 @@ interface GameStore {
     hp: number;
   };
   canRegress: boolean;
+  /** 마지막 번들 로드 시도 결과(터미널 `diag`) */
+  bundleConnection: {
+    ok: boolean;
+    source: "api" | "fallback" | null;
+    apiBaseUrl: string;
+    atMs: number;
+    lines: string[];
+  };
   loadBundle: () => Promise<void>;
   runCommand: (command: string) => Promise<void>;
   setBundle: (bundle: SheetBundle) => void;
@@ -431,11 +455,77 @@ export const useRpgStore = create<GameStore>((set, get) => ({
   ownedBooks: [],
   regressionPool: { str: 0, agi: 0, luk: 0, intel: 0, atk: 0, hp: 0 },
   canRegress: false,
+  bundleConnection: {
+    ok: false,
+    source: null,
+    apiBaseUrl: getApiBaseUrl(),
+    atMs: 0,
+    lines: []
+  },
   loadBundle: async () => {
-    const { data } = await api.get<SheetBundle>("/content/bundle");
+    const apiBaseUrl = getApiBaseUrl();
+    const bundleReqLabel = `${apiBaseUrl.replace(/\/?$/, "")}/content/bundle`;
+    const lines: string[] = [`[NET] 번들 로드 시도 → ${bundleReqLabel}`];
+    let data: SheetBundle | undefined;
+    let loadSource: "api" | "fallback" | null = null;
+    try {
+      const res = await api.get<SheetBundle>("/content/bundle");
+      data = res.data;
+      loadSource = "api";
+      lines.push(`[NET] API 응답 OK (characters ${Array.isArray(data?.characters) ? data.characters.length : "?"})`);
+    } catch (e) {
+      lines.push(...formatApiFailure(e, bundleReqLabel));
+      loadSource = "fallback";
+      const baseUrl = import.meta.env.BASE_URL ?? "/";
+      const prefix = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+      const fallbackUrl = `${prefix}sheets-fallback.json`;
+      lines.push(`[NET] 폴백 시도 → ${fallbackUrl}`);
+      try {
+        const res = await fetch(fallbackUrl);
+        if (!res.ok) {
+          lines.push(...formatFetchFailure(res.status, res.statusText, fallbackUrl));
+        } else {
+          data = await res.json();
+          lines.push("[NET] 정적 폴백 sheets-fallback.json 로드 성공");
+        }
+      } catch (fe) {
+        lines.push(...formatApiFailure(fe, fallbackUrl));
+      }
+    }
+
+    const atMs = Date.now();
+
+    if (!data) {
+      lines.push("[ERR] 번들 로드 최종 실패: API 불가 · 폴백 JSON 없음. `diag` 명령으로 재확인.");
+      console.error("[TerminalRPG] bundle load failed\n", lines.join("\n"));
+      set({
+        bundle: null,
+        bundleConnection: {
+          ok: false,
+          source: null,
+          apiBaseUrl,
+          atMs,
+          lines: lines.slice(-24)
+        },
+        logs: [...get().logs, ...lines.slice(-14)].slice(-140)
+      });
+      return;
+    }
+
     const normalized = normalizeBundle(data);
+    const bundleLogs = get().logs;
+    if (loadSource === "fallback") {
+      lines.push("[NET] 현재 번들 소스: 정적 JSON — 에디터 저장·AI는 백엔드 필요.");
+    }
     set({
       bundle: normalized,
+      bundleConnection: {
+        ok: true,
+        source: loadSource ?? "api",
+        apiBaseUrl,
+        atMs,
+        lines: lines.slice(-24)
+      },
       roster: normalized.characters.map((c) => ({
         ...c,
         rarity: normalizeRarity(c.rarity),
@@ -453,7 +543,8 @@ export const useRpgStore = create<GameStore>((set, get) => ({
         awaken: 0,
         equipped: {}
       })),
-      party: normalized.characters.slice(0, 2).map((c) => c.id)
+      party: normalized.characters.slice(0, 2).map((c) => c.id),
+      logs: [...bundleLogs, ...lines.slice(-8), `[NET] 힌트: 백엔드 상태는 diag 입력`].slice(-140)
     });
   },
   setBundle: (bundle) => set({ bundle }),
@@ -470,7 +561,10 @@ export const useRpgStore = create<GameStore>((set, get) => ({
 
     const beginTrpg = () => {
       if (!state.bundle || state.roster.length === 0) {
-        push("[ERR] bundle not loaded");
+        push("[ERR] bundle not loaded — 백엔드·폴백 JSON 로드에 실패했을 수 있습니다.");
+        const detail = get().bundleConnection.lines;
+        detail.slice(-8).forEach((line) => push(line));
+        push("[ERR] `diag` 로 원인 확인 후 `reload-bundle` 으로 재시도하세요.");
         return;
       }
       const normalPool = state.roster.filter((c) => c.rarity === "normal");
@@ -954,9 +1048,39 @@ export const useRpgStore = create<GameStore>((set, get) => ({
       return;
     }
 
+    if (normalized === "diag" || normalized === "netdiag") {
+      const cur = get().bundleConnection;
+      const explicit = import.meta.env.VITE_API_BASE_URL;
+      push("+======== NET DIAG =========+");
+      push(`| vite mode: ${import.meta.env.MODE}`);
+      push(`| VITE_API_BASE_URL: ${typeof explicit === "string" && explicit.trim() ? explicit : "(미설정 → /api, Vercel 서버리스)"}`);
+      push(`| api base (저장값): ${cur.apiBaseUrl}`);
+      push(`| api base (현재 env): ${getApiBaseUrl()}`);
+      push(`| bundle ok: ${cur.ok}`);
+      push(`| bundle source: ${cur.source ?? "none"}`);
+      push(`| last load: ${cur.atMs ? new Date(cur.atMs).toISOString() : "—"}`);
+      try {
+        const h = await api.get<{ ok?: boolean }>("/health");
+        push(`| GET /health → HTTP ${h.status} ${JSON.stringify(h.data)}`);
+      } catch (e) {
+        formatApiFailure(e, `${cur.apiBaseUrl.replace(/\/?$/, "")}/health`).forEach((ln) => push(`| ${ln}`));
+      }
+      push("| 번들 로그(최근):");
+      cur.lines.slice(-12).forEach((ln) => push(`| ${ln}`));
+      push("+=============================+");
+      return;
+    }
+
+    if (normalized === "reload-bundle") {
+      push("[NET] 번들 재로드 중…");
+      await get().loadBundle();
+      push(`[NET] 완료 (${get().bundleConnection.ok ? "ok" : "fail"})`);
+      return;
+    }
+
     if (normalized === "help") {
       push(
-        "commands: /start, choose character|element|origin|motive|stance 1|2|3(|4 for element), story, story choose A|B|C, regress, book shop, book buy [normal|rare|unique|epic|legendary|random], /tutorial, profile, gacha, battle, adventure, inventory, list [characters|maps|monsters|skills], save, load, editor on/off"
+        "commands: /start, diag, reload-bundle, choose character|element|origin|motive|stance 1|2|3(|4 for element), story, story choose A|B|C, regress, book shop, book buy [...], /tutorial, profile, gacha, battle, adventure, inventory, list [...], save, load, editor on/off"
       );
       return;
     }
@@ -1284,7 +1408,7 @@ export const useRpgStore = create<GameStore>((set, get) => ({
 
     if (normalized.startsWith("list")) {
       if (!state.bundle) {
-        push("[ERR] bundle not loaded");
+        push("[ERR] bundle not loaded — `reload-bundle` 또는 `diag`.");
         return;
       }
       const target = normalized.split(" ")[1] ?? "characters";

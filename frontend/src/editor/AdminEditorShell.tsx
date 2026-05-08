@@ -8,6 +8,7 @@ import { sheetSchemas } from "./sheets/schemas";
 import { generateRowsWithAi, assistCellWithAi } from "./ai/editorAiClient";
 import type { SheetBundle } from "../rpg/types";
 import { getApiBaseUrl } from "../apiBase";
+import { formatApiFailure } from "../apiErrors";
 
 const tabsConst = ["maps", "characters", "monsters", "storyBranches", "skills", "weapons", "items", "equipments"] as const;
 type SheetTab = (typeof tabsConst)[number];
@@ -76,22 +77,33 @@ export const AdminEditorShell = ({ bundle, onUpdateBundle }: Props) => {
       return;
     }
     setError("");
-    const api = axios.create({ baseURL: getApiBaseUrl() });
-    const { data } = await api.post<SheetBundle>("/editor/sheets", bundle);
-    onUpdateBundle(data);
-    setPreview("[SYS] backend synced");
+    try {
+      const api = axios.create({ baseURL: getApiBaseUrl(), timeout: 30_000 });
+      const url = `${getApiBaseUrl().replace(/\/?$/, "")}/editor/sheets`;
+      const { data } = await api.post<SheetBundle>("/editor/sheets", bundle);
+      onUpdateBundle(data);
+      setPreview(`[SYS] backend synced (${url})`);
+    } catch (e) {
+      const detail = formatApiFailure(e, "POST /editor/sheets").join("\n");
+      console.warn("[TerminalRPG]", detail);
+      setError(detail);
+      setPreview("[ERR] 저장 실패 — 콘솔(F12)에서 [TerminalRPG] 로그 확인");
+    }
   };
 
   const reloadFromBackend = async () => {
     setError("");
     setLoading(true);
     try {
-      const api = axios.create({ baseURL: getApiBaseUrl() });
+      const api = axios.create({ baseURL: getApiBaseUrl(), timeout: 30_000 });
       const { data } = await api.get<SheetBundle>("/editor/sheets");
       onUpdateBundle(data);
       setPreview(`[SYS] backend reloaded (v${data.version})`);
     } catch (e) {
-      setError("백엔드에서 시트 데이터를 가져오지 못했습니다. 서버 상태를 확인하세요.");
+      const detail = formatApiFailure(e, "GET /editor/sheets").join("\n");
+      console.warn("[TerminalRPG]", detail);
+      setError(detail);
+      setPreview("[ERR] 에디터용 시트 로드 실패 — `diag`/콘솔 확인");
     } finally {
       setLoading(false);
     }

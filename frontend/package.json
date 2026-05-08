@@ -4,8 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node ./scripts/copy-sheets-fallback.mjs",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "copy:sheets-fallback": "node ./scripts/copy-sheets-fallback.mjs",
+    "build": "tsc -b && npm run copy:sheets-fallback && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

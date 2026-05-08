@@ -1,5 +1,7 @@
 export const baseHelp = [
   "/start",
+  "diag",
+  "reload-bundle",
   "/tutorial",
   "choose character|element|origin|motive|stance 1|2|3(|4 element)",
   "story choose A|B|C",

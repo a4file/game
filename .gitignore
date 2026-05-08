@@ -13,3 +13,6 @@ yarn-error.log*
 
 # Vite pre-bundled deps (local only)
 .vite/
+
+# Generated at frontend build from backend/data/sheets.json
+frontend/public/sheets-fallback.json

@@ -122,6 +122,7 @@ export const TerminalShell = () => {
       if (line.startsWith("[ERR]")) return paint("38;5;203", line);
       if (line.startsWith("[BOOT]")) return paint("38;5;75", line);
       if (line.startsWith("[TRPG]")) return paint("38;5;87", line);
+      if (line.startsWith("[NET]")) return paint("38;5;81", line);
       if (line.startsWith("[STORY]")) return paint("38;5;183", line);
       if (line.startsWith("[BOOK]")) return paint("38;5;220", line);
       if (line.startsWith("[REGRESS]")) return paint("38;5;48", line);

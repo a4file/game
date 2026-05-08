@@ -27,11 +27,11 @@ gh repo create <저장소이름> --private --source=. --remote=origin --push
 
 ## Vercel 배포
 
-리포지토리 **루트**를 Vercel 프로젝트 루트로 연결합니다. `vercel.json`이 빌드·정적 출력·API 라우트를 설정합니다.
+**프로젝트 Root Directory는 리포지토리 루트(`.` )** 로 두세요. `frontend/`만 지정하면 `api/` 서버리스와 루트 `vercel-build`가 빠져 백엔드가 동작하지 않습니다.
 
-- **빌드**: `npm run vercel-build` → 백엔드 `tsc` + `docs/mythic-archive`·`sheets.json`을 `backend/dist/vercel-bundle/`에 복사 → 프론트 `vite build`
-- **API**: `api/[[...slug]].js` + `serverless-http`로 Express를 서버리스 함수에 탑재. 브라우저는 동일 출처 **`/api/...`** 로 호출합니다.
-- **프론트**: 프로덕션에서 `VITE_API_BASE_URL`을 비우면 기본이 **`/api`** 입니다. 별도 API 도메인을 쓰려면 Vercel 환경 변수에 `VITE_API_BASE_URL=https://...` 를 넣으세요.
+- **빌드**: `vercel.json` → `npm run vercel-build` → 백엔드 `tsc` + `docs/mythic-archive`·`sheets.json`을 `backend/dist/vercel-bundle/`에 복사 → 프론트 `vite build`
+- **API(백엔드)**: 루트 `api/[[...slug]].js` + `serverless-http`로 Express를 서버리스에 올립니다. 클라이언트 기본 베이스 URL은 **`/api`** (`GET /api/health`, `GET /api/content/bundle` 등).
+- **환경 변수**: `VITE_API_BASE_URL`을 비우면 위와 같이 **`/api`** 를 씁니다. 별 도메인/API만 쓸 때만 절대 URL을 넣으면 됩니다.
 
 **Vercel 대시보드 → Environment Variables** (Production 등):
 
