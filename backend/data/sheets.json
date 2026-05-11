@@ -1,11 +1,14 @@
 {
-  "version": 1,
+  "version": 2,
   "maps": [
     {
       "id": "st-001",
       "name": "봉인 도서관 외곽",
       "recommendedPower": 120,
-      "monsterIds": ["m-001", "m-002"]
+      "monsterIds": [
+        "m-001",
+        "m-002"
+      ]
     }
   ],
   "characters": [
@@ -23,9 +26,14 @@
       "intel": 12,
       "atk": 32,
       "hp": 130,
-      "skillIds": ["sk-001", "sk-003"],
+      "skillIds": [
+        "sk-001",
+        "sk-003"
+      ],
       "maxPages": 99,
-      "storyPages": ["프롤로그: 페이지 가장자리에서 빛이 새어나온다."]
+      "storyPages": [
+        "프롤로그: 페이지 가장자리에서 빛이 새어나온다."
+      ]
     },
     {
       "id": "c-002",
@@ -41,9 +49,13 @@
       "intel": 9,
       "atk": 30,
       "hp": 125,
-      "skillIds": ["sk-002"],
+      "skillIds": [
+        "sk-002"
+      ],
       "maxPages": 99,
-      "storyPages": ["프롤로그: 오래된 나침반이 북을 잃었다."]
+      "storyPages": [
+        "프롤로그: 오래된 나침반이 북을 잃었다."
+      ]
     },
     {
       "id": "c-003",
@@ -59,9 +71,13 @@
       "intel": 13,
       "atk": 28,
       "hp": 120,
-      "skillIds": ["sk-004"],
+      "skillIds": [
+        "sk-004"
+      ],
       "maxPages": 99,
-      "storyPages": ["프롤로그: 톱니가 멈추자 시간이 숨을 삼켰다."]
+      "storyPages": [
+        "프롤로그: 톱니가 멈추자 시간이 숨을 삼켰다."
+      ]
     }
   ],
   "monsters": [
@@ -76,7 +92,9 @@
       "intel": 8,
       "atk": 26,
       "hp": 140,
-      "skillIds": ["sk-005"]
+      "skillIds": [
+        "sk-005"
+      ]
     },
     {
       "id": "m-002",
@@ -89,7 +107,9 @@
       "intel": 10,
       "atk": 29,
       "hp": 150,
-      "skillIds": ["sk-006"]
+      "skillIds": [
+        "sk-006"
+      ]
     }
   ],
   "stories": [
@@ -98,9 +118,20 @@
       "title": "STORY1 봉인 서고",
       "theme": "기억의 대가와 책임",
       "world": "봉인된 도서관 도시, 아르카디아",
-      "characters": ["c-001", "c-002", "c-003"],
-      "monsters": ["m-001", "m-002"],
-      "systems": ["기록 균열", "장면 선택", "회귀 계승"],
+      "characters": [
+        "c-001",
+        "c-002",
+        "c-003"
+      ],
+      "monsters": [
+        "m-001",
+        "m-002"
+      ],
+      "systems": [
+        "기록 균열",
+        "장면 선택",
+        "회귀 계승"
+      ],
       "beats": [
         {
           "id": "beat-01",
@@ -114,11 +145,32 @@
                   "id": "scene-01-01-01",
                   "title": "열리는 첫 페이지",
                   "event": "도시 중앙의 거대 서고가 흔들리고, 주인공은 사라진 기록의 공백을 발견한다.",
-                  "dramaticBeats": ["기이한 징후", "주인공의 결핍", "행동 촉발"]
+                  "dramaticBeats": [
+                    "기이한 징후",
+                    "주인공의 결핍",
+                    "행동 촉발"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 1~8",
+          "narrativeRole": "세계관 소개, 주인공의 결핍 제시, 아직 사건 전 상태",
+          "narrativeCore": "무엇이 부족한 인간인가?",
+          "requiredElements": "루틴, 관계, 숨겨진 불만, 작은 이상징후",
+          "emotionAxis": "안정 + 미세한 불안"
         },
         {
           "id": "beat-02",
@@ -132,11 +184,32 @@
                   "id": "scene-02-01-01",
                   "title": "기억을 바꾸는 대가",
                   "event": "사서장은 '기억을 고치면 삶이 비틀린다'는 경고를 남긴다.",
-                  "dramaticBeats": ["주제 문장", "철학적 충돌", "예고"]
+                  "dramaticBeats": [
+                    "주제 문장",
+                    "철학적 충돌",
+                    "예고"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 9~16",
+          "narrativeRole": "이야기가 강제로 시작됨, 이전 삶으로 못 돌아가게 되는 사건",
+          "narrativeCore": "문제가 생겼다",
+          "requiredElements": "사고, 의뢰, 침입, 발견, 상실",
+          "emotionAxis": "혼란, 거부, 긴장 시작"
         },
         {
           "id": "beat-03",
@@ -150,11 +223,32 @@
                   "id": "scene-03-01-01",
                   "title": "세 인물의 계약",
                   "event": "주인공, 탐험가, 설계자가 서로 다른 목적을 안고 임시 동맹을 맺는다.",
-                  "dramaticBeats": ["관계 정의", "능력 소개", "긴장 씨앗"]
+                  "dramaticBeats": [
+                    "관계 정의",
+                    "능력 소개",
+                    "긴장 씨앗"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 17~25",
+          "narrativeRole": "주인공이 행동을 결정, Act 1 종료",
+          "narrativeCore": "그래, 해보자",
+          "requiredElements": "목표 설정, 동료/도구 획득, 첫 진입",
+          "emotionAxis": "기대, 자신감, 낙관"
         },
         {
           "id": "beat-04",
@@ -168,11 +262,32 @@
                   "id": "scene-04-01-01",
                   "title": "도시의 기억 정전",
                   "event": "도시 주민의 기억 일부가 동시에 소거되며 봉인층이 열린다.",
-                  "dramaticBeats": ["위기 폭발", "돌이킬 수 없음", "선택 강요"]
+                  "dramaticBeats": [
+                    "위기 폭발",
+                    "돌이킬 수 없음",
+                    "선택 강요"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 26~33",
+          "narrativeRole": "새로운 세계 학습, 규칙 이해",
+          "narrativeCore": "생각보다 복잡하다",
+          "requiredElements": "테스트, 정보수집, 작은 승리, 캐릭터 관계 구축",
+          "emotionAxis": "재미, 호기심, 성장감"
         },
         {
           "id": "beat-05",
@@ -186,11 +301,32 @@
                   "id": "scene-05-01-01",
                   "title": "첫 갈림길",
                   "event": "주인공은 안전한 보존 구역에 남거나, 균열 심부로 진입할지 선택해야 한다.",
-                  "dramaticBeats": ["내적 갈등", "관계 시험", "행동 결심 직전"]
+                  "dramaticBeats": [
+                    "내적 갈등",
+                    "관계 시험",
+                    "행동 결심 직전"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 34~41",
+          "narrativeRole": "적의 존재가 현실화, 승리에 비용 발생",
+          "narrativeCore": "이건 위험하다",
+          "requiredElements": "첫 큰 실패, 희생, 내부 갈등",
+          "emotionAxis": "압박, 긴장 상승"
         },
         {
           "id": "beat-06",
@@ -204,11 +340,32 @@
                   "id": "scene-06-01-01",
                   "title": "금서 회랑",
                   "event": "일행은 봉인된 회랑에 들어서며 본격적으로 세계의 이면과 맞닥뜨린다.",
-                  "dramaticBeats": ["새 규칙 진입", "리스크 확대", "미션 재정의"]
+                  "dramaticBeats": [
+                    "새 규칙 진입",
+                    "리스크 확대",
+                    "미션 재정의"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 42~50",
+          "narrativeRole": "이야기 방향이 뒤집힘, 진실 일부 공개",
+          "narrativeCore": "상황이 완전히 달랐다",
+          "requiredElements": "반전, 배신, 진짜 목표 발견, 거짓 승리 또는 거짓 패배",
+          "emotionAxis": "충격, 가속"
         },
         {
           "id": "beat-07",
@@ -222,11 +379,32 @@
                   "id": "scene-07-01-01",
                   "title": "탐험가의 상처",
                   "event": "탐험가가 잃어버린 가족 기록을 고백하며 팀의 감정선이 형성된다.",
-                  "dramaticBeats": ["정서 연결", "신뢰 구축", "테마 반영"]
+                  "dramaticBeats": [
+                    "정서 연결",
+                    "신뢰 구축",
+                    "테마 반영"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 51~58",
+          "narrativeRole": "미드포인트 이후 후폭풍, 통제력 상실",
+          "narrativeCore": "점점 망한다",
+          "requiredElements": "관계 붕괴, 적의 반격, 실수 누적",
+          "emotionAxis": "불안, 피로, 균열"
         },
         {
           "id": "beat-08",
@@ -240,11 +418,32 @@
                   "id": "scene-08-01-01",
                   "title": "기록 추격전",
                   "event": "플레이어 선택에 따라 전투, 협상, 잠입이 반복되며 세계의 퍼즐이 열린다.",
-                  "dramaticBeats": ["장르 쾌감", "능력 시험", "보상 획득"]
+                  "dramaticBeats": [
+                    "장르 쾌감",
+                    "능력 시험",
+                    "보상 획득"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 59~66",
+          "narrativeRole": "최악의 상황 도달, 내부/외부 패배",
+          "narrativeCore": "끝났다",
+          "requiredElements": "동료 상실, 실패 확정, 거짓말 폭로, 목표 상실",
+          "emotionAxis": "절망"
         },
         {
           "id": "beat-09",
@@ -258,11 +457,32 @@
                   "id": "scene-09-01-01",
                   "title": "핵심 단서 확보",
                   "event": "균열을 닫을 열쇠를 얻지만, 사실은 더 큰 봉인을 해제하는 열쇠였음이 드러난다.",
-                  "dramaticBeats": ["반전", "판세 전환", "긴장 재점화"]
+                  "dramaticBeats": [
+                    "반전",
+                    "판세 전환",
+                    "긴장 재점화"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 67~75",
+          "narrativeRole": "내면 변화, 테마 이해",
+          "narrativeCore": "문제는 나였다",
+          "requiredElements": "고백, 깨달음, 화해, 새로운 가치관",
+          "emotionAxis": "정적, 성찰"
         },
         {
           "id": "beat-10",
@@ -276,11 +496,32 @@
                   "id": "scene-10-01-01",
                   "title": "감시자의 추적",
                   "event": "잿빛 감시자 부대가 일행을 분리시키며 자원과 시간을 갉아먹는다.",
-                  "dramaticBeats": ["지속 손실", "관계 균열", "시간 압박"]
+                  "dramaticBeats": [
+                    "지속 손실",
+                    "관계 균열",
+                    "시간 압박"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 76~83",
+          "narrativeRole": "마지막 계획 수립, 새로운 방식 선택",
+          "narrativeCore": "이번엔 다르게 한다",
+          "requiredElements": "팀 재결합, 전략, 희생 결의",
+          "emotionAxis": "결의, 긴장된 희망"
         },
         {
           "id": "beat-11",
@@ -294,11 +535,32 @@
                   "id": "scene-11-01-01",
                   "title": "봉인의 붕괴",
                   "event": "핵심 동료가 쓰러지고 도시 기억의 절반이 소거되며 모든 계획이 무너진다.",
-                  "dramaticBeats": ["최저점", "상실", "침묵"]
+                  "dramaticBeats": [
+                    "최저점",
+                    "상실",
+                    "침묵"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 84~95",
+          "narrativeRole": "모든 갈등 폭발, 주제 증명",
+          "narrativeCore": "진짜 싸움",
+          "requiredElements": "최종 대결, 선택, 희생, 역전",
+          "emotionAxis": "최고조 긴장, 카타르시스"
         },
         {
           "id": "beat-12",
@@ -312,11 +574,32 @@
                   "id": "scene-12-01-01",
                   "title": "새로운 기록의 탄생",
                   "event": "플레이어는 기억을 희생해 도시를 구하거나, 도시를 희생해 진실을 보존하는 결말을 연출한다.",
-                  "dramaticBeats": ["최종 선택", "테마 결산", "후일담"]
+                  "dramaticBeats": [
+                    "최종 선택",
+                    "테마 결산",
+                    "후일담"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 96~100",
+          "narrativeRole": "변화 결과 보여주기, 후일담",
+          "narrativeCore": "그래서 인간이 어떻게 변했는가",
+          "requiredElements": "세계 변화, 관계 정리, 여운, 다음 가능성",
+          "emotionAxis": "해방, 씁쓸함, 희망"
         }
       ]
     },
@@ -325,9 +608,18 @@
       "title": "STORY2 잿빛 항로",
       "theme": "생존과 연대의 균형",
       "world": "해무로 가려진 부유 항구 군도",
-      "characters": ["c-002", "c-003"],
-      "monsters": ["m-002"],
-      "systems": ["항로 개척", "보급 관리", "세력 외교"],
+      "characters": [
+        "c-002",
+        "c-003"
+      ],
+      "monsters": [
+        "m-002"
+      ],
+      "systems": [
+        "항로 개척",
+        "보급 관리",
+        "세력 외교"
+      ],
       "beats": [
         {
           "id": "beat-01",
@@ -341,11 +633,32 @@
                   "id": "scene-01-01-01",
                   "title": "침묵한 항구",
                   "event": "모든 등대가 꺼진 밤, 원정선은 지도에 없는 바다로 출항한다.",
-                  "dramaticBeats": ["세계 제시", "긴장 도입", "목표 선언"]
+                  "dramaticBeats": [
+                    "세계 제시",
+                    "긴장 도입",
+                    "목표 선언"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 1~8",
+          "narrativeRole": "세계관 소개, 주인공의 결핍 제시, 아직 사건 전 상태",
+          "narrativeCore": "무엇이 부족한 인간인가?",
+          "requiredElements": "루틴, 관계, 숨겨진 불만, 작은 이상징후",
+          "emotionAxis": "안정 + 미세한 불안"
         },
         {
           "id": "beat-02",
@@ -359,11 +672,32 @@
                   "id": "scene-02-01-01",
                   "title": "생존의 대가",
                   "event": "선장은 '모두를 살리려면 누군가의 몫을 덜어내야 한다'고 말한다.",
-                  "dramaticBeats": ["주제 암시", "가치 충돌", "불안 확산"]
+                  "dramaticBeats": [
+                    "주제 암시",
+                    "가치 충돌",
+                    "불안 확산"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 9~16",
+          "narrativeRole": "이야기가 강제로 시작됨, 이전 삶으로 못 돌아가게 되는 사건",
+          "narrativeCore": "문제가 생겼다",
+          "requiredElements": "사고, 의뢰, 침입, 발견, 상실",
+          "emotionAxis": "혼란, 거부, 긴장 시작"
         },
         {
           "id": "beat-03",
@@ -377,11 +711,32 @@
                   "id": "scene-03-01-01",
                   "title": "각자의 계약",
                   "event": "각 선원은 다른 계약 조건과 비밀 목적을 가진 채 항해를 시작한다.",
-                  "dramaticBeats": ["인물 배치", "관계 축 형성", "복선 배치"]
+                  "dramaticBeats": [
+                    "인물 배치",
+                    "관계 축 형성",
+                    "복선 배치"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 17~25",
+          "narrativeRole": "주인공이 행동을 결정, Act 1 종료",
+          "narrativeCore": "그래, 해보자",
+          "requiredElements": "목표 설정, 동료/도구 획득, 첫 진입",
+          "emotionAxis": "기대, 자신감, 낙관"
         },
         {
           "id": "beat-04",
@@ -395,11 +750,32 @@
                   "id": "scene-04-01-01",
                   "title": "신호탄",
                   "event": "정체불명의 조난 신호를 수신하고, 원정의 우선 목표가 변경된다.",
-                  "dramaticBeats": ["위기 호출", "행동 강제", "새 목표"]
+                  "dramaticBeats": [
+                    "위기 호출",
+                    "행동 강제",
+                    "새 목표"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 26~33",
+          "narrativeRole": "새로운 세계 학습, 규칙 이해",
+          "narrativeCore": "생각보다 복잡하다",
+          "requiredElements": "테스트, 정보수집, 작은 승리, 캐릭터 관계 구축",
+          "emotionAxis": "재미, 호기심, 성장감"
         },
         {
           "id": "beat-05",
@@ -413,11 +789,32 @@
                   "id": "scene-05-01-01",
                   "title": "구조 vs 생존",
                   "event": "구조 임무를 수행하면 보급이 부족해지고, 포기하면 명성이 무너진다.",
-                  "dramaticBeats": ["양자택일", "도덕 부담", "행동 결의"]
+                  "dramaticBeats": [
+                    "양자택일",
+                    "도덕 부담",
+                    "행동 결의"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 34~41",
+          "narrativeRole": "적의 존재가 현실화, 승리에 비용 발생",
+          "narrativeCore": "이건 위험하다",
+          "requiredElements": "첫 큰 실패, 희생, 내부 갈등",
+          "emotionAxis": "압박, 긴장 상승"
         },
         {
           "id": "beat-06",
@@ -431,11 +828,32 @@
                   "id": "scene-06-01-01",
                   "title": "금지 항로",
                   "event": "선단은 지도에 기록되지 않은 해무 구역으로 들어간다.",
-                  "dramaticBeats": ["신세계 진입", "룰 변경", "긴장 상승"]
+                  "dramaticBeats": [
+                    "신세계 진입",
+                    "룰 변경",
+                    "긴장 상승"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 42~50",
+          "narrativeRole": "이야기 방향이 뒤집힘, 진실 일부 공개",
+          "narrativeCore": "상황이 완전히 달랐다",
+          "requiredElements": "반전, 배신, 진짜 목표 발견, 거짓 승리 또는 거짓 패배",
+          "emotionAxis": "충격, 가속"
         },
         {
           "id": "beat-07",
@@ -449,11 +867,32 @@
                   "id": "scene-07-01-01",
                   "title": "동료의 과거",
                   "event": "동료가 과거의 실패를 고백하며 주인공과 진짜 동맹을 맺는다.",
-                  "dramaticBeats": ["감정 공유", "신뢰 강화", "테마 심화"]
+                  "dramaticBeats": [
+                    "감정 공유",
+                    "신뢰 강화",
+                    "테마 심화"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 51~58",
+          "narrativeRole": "미드포인트 이후 후폭풍, 통제력 상실",
+          "narrativeCore": "점점 망한다",
+          "requiredElements": "관계 붕괴, 적의 반격, 실수 누적",
+          "emotionAxis": "불안, 피로, 균열"
         },
         {
           "id": "beat-08",
@@ -467,11 +906,32 @@
                   "id": "scene-08-01-01",
                   "title": "군도 작전",
                   "event": "섬마다 탐색/교섭/전투의 선택이 교차하며 스토리 톤이 갈라진다.",
-                  "dramaticBeats": ["게임플레이 확장", "선택 누적", "보상 회수"]
+                  "dramaticBeats": [
+                    "게임플레이 확장",
+                    "선택 누적",
+                    "보상 회수"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 59~66",
+          "narrativeRole": "최악의 상황 도달, 내부/외부 패배",
+          "narrativeCore": "끝났다",
+          "requiredElements": "동료 상실, 실패 확정, 거짓말 폭로, 목표 상실",
+          "emotionAxis": "절망"
         },
         {
           "id": "beat-09",
@@ -485,11 +945,32 @@
                   "id": "scene-09-01-01",
                   "title": "등대의 비밀",
                   "event": "꺼진 줄 알았던 등대는 인공적으로 차단된 것이었음이 드러난다.",
-                  "dramaticBeats": ["진실 폭로", "전략 전환", "적 규정"]
+                  "dramaticBeats": [
+                    "진실 폭로",
+                    "전략 전환",
+                    "적 규정"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 67~75",
+          "narrativeRole": "내면 변화, 테마 이해",
+          "narrativeCore": "문제는 나였다",
+          "requiredElements": "고백, 깨달음, 화해, 새로운 가치관",
+          "emotionAxis": "정적, 성찰"
         },
         {
           "id": "beat-10",
@@ -503,11 +984,32 @@
                   "id": "scene-10-01-01",
                   "title": "해적 연합",
                   "event": "해적 연합이 보급선부터 끊어오며 원정대의 생존을 압박한다.",
-                  "dramaticBeats": ["외적 압박", "내적 갈등", "한계 노출"]
+                  "dramaticBeats": [
+                    "외적 압박",
+                    "내적 갈등",
+                    "한계 노출"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 76~83",
+          "narrativeRole": "마지막 계획 수립, 새로운 방식 선택",
+          "narrativeCore": "이번엔 다르게 한다",
+          "requiredElements": "팀 재결합, 전략, 희생 결의",
+          "emotionAxis": "결의, 긴장된 희망"
         },
         {
           "id": "beat-11",
@@ -521,11 +1023,32 @@
                   "id": "scene-11-01-01",
                   "title": "마스트 붕괴",
                   "event": "폭풍 속에서 주력선의 마스트가 무너지며 귀환 가능성이 사라진다.",
-                  "dramaticBeats": ["절망", "상실", "침잠"]
+                  "dramaticBeats": [
+                    "절망",
+                    "상실",
+                    "침잠"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 84~95",
+          "narrativeRole": "모든 갈등 폭발, 주제 증명",
+          "narrativeCore": "진짜 싸움",
+          "requiredElements": "최종 대결, 선택, 희생, 역전",
+          "emotionAxis": "최고조 긴장, 카타르시스"
         },
         {
           "id": "beat-12",
@@ -539,16 +1062,422 @@
                   "id": "scene-12-01-01",
                   "title": "새 항로 선언",
                   "event": "플레이어는 본국 귀환 보고를 택하거나, 군도에 새 항구를 세우는 결말을 선택한다.",
-                  "dramaticBeats": ["최종 결단", "주제 귀결", "엔딩 여운"]
+                  "dramaticBeats": [
+                    "최종 결단",
+                    "주제 귀결",
+                    "엔딩 여운"
+                  ],
+                  "sceneGoal": "",
+                  "sceneConflict": "",
+                  "sceneChange": "",
+                  "emotionBeat": "",
+                  "castCharacterId": "",
+                  "castMonsterId": "",
+                  "castMapId": "",
+                  "castObjectId": "",
+                  "castDocFaction": "",
+                  "castDocRule": "",
+                  "castDocEvent": "",
+                  "castDocGoal": ""
                 }
               ]
             }
-          ]
+          ],
+          "sceneRangeLabel": "씬 96~100",
+          "narrativeRole": "변화 결과 보여주기, 후일담",
+          "narrativeCore": "그래서 인간이 어떻게 변했는가",
+          "requiredElements": "세계 변화, 관계 정리, 여운, 다음 가능성",
+          "emotionAxis": "해방, 씁쓸함, 희망"
         }
       ]
     }
   ],
-  "storyBranches": [],
+  "storyBranches": [
+    {
+      "id": "story-001-b01s01c01",
+      "chapter": 1,
+      "title": "열리는 첫 페이지",
+      "event": "도시 중앙의 거대 서고가 흔들리고, 주인공은 사라진 기록의 공백을 발견한다.",
+      "eventType": "adventure",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch1_A",
+      "flagB": "story-001_ch1_B",
+      "flagC": "story-001_ch1_C"
+    },
+    {
+      "id": "story-001-b02s01c01",
+      "chapter": 2,
+      "title": "기억을 바꾸는 대가",
+      "event": "사서장은 '기억을 고치면 삶이 비틀린다'는 경고를 남긴다.",
+      "eventType": "fishing",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch2_A",
+      "flagB": "story-001_ch2_B",
+      "flagC": "story-001_ch2_C"
+    },
+    {
+      "id": "story-001-b03s01c01",
+      "chapter": 3,
+      "title": "세 인물의 계약",
+      "event": "주인공, 탐험가, 설계자가 서로 다른 목적을 안고 임시 동맹을 맺는다.",
+      "eventType": "battle",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch3_A",
+      "flagB": "story-001_ch3_B",
+      "flagC": "story-001_ch3_C"
+    },
+    {
+      "id": "story-001-b04s01c01",
+      "chapter": 4,
+      "title": "도시의 기억 정전",
+      "event": "도시 주민의 기억 일부가 동시에 소거되며 봉인층이 열린다.",
+      "eventType": "maze",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch4_A",
+      "flagB": "story-001_ch4_B",
+      "flagC": "story-001_ch4_C"
+    },
+    {
+      "id": "story-001-b05s01c01",
+      "chapter": 5,
+      "title": "첫 갈림길",
+      "event": "주인공은 안전한 보존 구역에 남거나, 균열 심부로 진입할지 선택해야 한다.",
+      "eventType": "merchant",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch5_A",
+      "flagB": "story-001_ch5_B",
+      "flagC": "story-001_ch5_C"
+    },
+    {
+      "id": "story-001-b06s01c01",
+      "chapter": 6,
+      "title": "금서 회랑",
+      "event": "일행은 봉인된 회랑에 들어서며 본격적으로 세계의 이면과 맞닥뜨린다.",
+      "eventType": "trap",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch6_A",
+      "flagB": "story-001_ch6_B",
+      "flagC": "story-001_ch6_C"
+    },
+    {
+      "id": "story-001-b07s01c01",
+      "chapter": 7,
+      "title": "탐험가의 상처",
+      "event": "탐험가가 잃어버린 가족 기록을 고백하며 팀의 감정선이 형성된다.",
+      "eventType": "companion",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch7_A",
+      "flagB": "story-001_ch7_B",
+      "flagC": "story-001_ch7_C"
+    },
+    {
+      "id": "story-001-b08s01c01",
+      "chapter": 8,
+      "title": "기록 추격전",
+      "event": "플레이어 선택에 따라 전투, 협상, 잠입이 반복되며 세계의 퍼즐이 열린다.",
+      "eventType": "treasure",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch8_A",
+      "flagB": "story-001_ch8_B",
+      "flagC": "story-001_ch8_C"
+    },
+    {
+      "id": "story-001-b09s01c01",
+      "chapter": 9,
+      "title": "핵심 단서 확보",
+      "event": "균열을 닫을 열쇠를 얻지만, 사실은 더 큰 봉인을 해제하는 열쇠였음이 드러난다.",
+      "eventType": "town",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch9_A",
+      "flagB": "story-001_ch9_B",
+      "flagC": "story-001_ch9_C"
+    },
+    {
+      "id": "story-001-b10s01c01",
+      "chapter": 10,
+      "title": "감시자의 추적",
+      "event": "잿빛 감시자 부대가 일행을 분리시키며 자원과 시간을 갉아먹는다.",
+      "eventType": "adventure",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch10_A",
+      "flagB": "story-001_ch10_B",
+      "flagC": "story-001_ch10_C"
+    },
+    {
+      "id": "story-001-b11s01c01",
+      "chapter": 11,
+      "title": "봉인의 붕괴",
+      "event": "핵심 동료가 쓰러지고 도시 기억의 절반이 소거되며 모든 계획이 무너진다.",
+      "eventType": "fishing",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch11_A",
+      "flagB": "story-001_ch11_B",
+      "flagC": "story-001_ch11_C"
+    },
+    {
+      "id": "story-001-b12s01c01",
+      "chapter": 12,
+      "title": "새로운 기록의 탄생",
+      "event": "플레이어는 기억을 희생해 도시를 구하거나, 도시를 희생해 진실을 보존하는 결말을 연출한다.",
+      "eventType": "battle",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-001_ch12_A",
+      "flagB": "story-001_ch12_B",
+      "flagC": "story-001_ch12_C"
+    },
+    {
+      "id": "story-002-b01s01c01",
+      "chapter": 13,
+      "title": "침묵한 항구",
+      "event": "모든 등대가 꺼진 밤, 원정선은 지도에 없는 바다로 출항한다.",
+      "eventType": "maze",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch13_A",
+      "flagB": "story-002_ch13_B",
+      "flagC": "story-002_ch13_C"
+    },
+    {
+      "id": "story-002-b02s01c01",
+      "chapter": 14,
+      "title": "생존의 대가",
+      "event": "선장은 '모두를 살리려면 누군가의 몫을 덜어내야 한다'고 말한다.",
+      "eventType": "merchant",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch14_A",
+      "flagB": "story-002_ch14_B",
+      "flagC": "story-002_ch14_C"
+    },
+    {
+      "id": "story-002-b03s01c01",
+      "chapter": 15,
+      "title": "각자의 계약",
+      "event": "각 선원은 다른 계약 조건과 비밀 목적을 가진 채 항해를 시작한다.",
+      "eventType": "trap",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch15_A",
+      "flagB": "story-002_ch15_B",
+      "flagC": "story-002_ch15_C"
+    },
+    {
+      "id": "story-002-b04s01c01",
+      "chapter": 16,
+      "title": "신호탄",
+      "event": "정체불명의 조난 신호를 수신하고, 원정의 우선 목표가 변경된다.",
+      "eventType": "companion",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch16_A",
+      "flagB": "story-002_ch16_B",
+      "flagC": "story-002_ch16_C"
+    },
+    {
+      "id": "story-002-b05s01c01",
+      "chapter": 17,
+      "title": "구조 vs 생존",
+      "event": "구조 임무를 수행하면 보급이 부족해지고, 포기하면 명성이 무너진다.",
+      "eventType": "treasure",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch17_A",
+      "flagB": "story-002_ch17_B",
+      "flagC": "story-002_ch17_C"
+    },
+    {
+      "id": "story-002-b06s01c01",
+      "chapter": 18,
+      "title": "금지 항로",
+      "event": "선단은 지도에 기록되지 않은 해무 구역으로 들어간다.",
+      "eventType": "town",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch18_A",
+      "flagB": "story-002_ch18_B",
+      "flagC": "story-002_ch18_C"
+    },
+    {
+      "id": "story-002-b07s01c01",
+      "chapter": 19,
+      "title": "동료의 과거",
+      "event": "동료가 과거의 실패를 고백하며 주인공과 진짜 동맹을 맺는다.",
+      "eventType": "adventure",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch19_A",
+      "flagB": "story-002_ch19_B",
+      "flagC": "story-002_ch19_C"
+    },
+    {
+      "id": "story-002-b08s01c01",
+      "chapter": 20,
+      "title": "군도 작전",
+      "event": "섬마다 탐색/교섭/전투의 선택이 교차하며 스토리 톤이 갈라진다.",
+      "eventType": "fishing",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch20_A",
+      "flagB": "story-002_ch20_B",
+      "flagC": "story-002_ch20_C"
+    },
+    {
+      "id": "story-002-b09s01c01",
+      "chapter": 21,
+      "title": "등대의 비밀",
+      "event": "꺼진 줄 알았던 등대는 인공적으로 차단된 것이었음이 드러난다.",
+      "eventType": "battle",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch21_A",
+      "flagB": "story-002_ch21_B",
+      "flagC": "story-002_ch21_C"
+    },
+    {
+      "id": "story-002-b10s01c01",
+      "chapter": 22,
+      "title": "해적 연합",
+      "event": "해적 연합이 보급선부터 끊어오며 원정대의 생존을 압박한다.",
+      "eventType": "maze",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch22_A",
+      "flagB": "story-002_ch22_B",
+      "flagC": "story-002_ch22_C"
+    },
+    {
+      "id": "story-002-b11s01c01",
+      "chapter": 23,
+      "title": "마스트 붕괴",
+      "event": "폭풍 속에서 주력선의 마스트가 무너지며 귀환 가능성이 사라진다.",
+      "eventType": "merchant",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch23_A",
+      "flagB": "story-002_ch23_B",
+      "flagC": "story-002_ch23_C"
+    },
+    {
+      "id": "story-002-b12s01c01",
+      "chapter": 24,
+      "title": "새 항로 선언",
+      "event": "플레이어는 본국 귀환 보고를 택하거나, 군도에 새 항구를 세우는 결말을 선택한다.",
+      "eventType": "trap",
+      "eventTier": "common",
+      "rewardHint": "작은 보급과 기록 단서를 얻는다.",
+      "riskHint": "상황 악화 시 체력과 자원을 소모할 수 있다.",
+      "optionA": "정면 돌파",
+      "optionB": "우회 탐색",
+      "optionC": "침묵 유지",
+      "flagA": "story-002_ch24_A",
+      "flagB": "story-002_ch24_B",
+      "flagC": "story-002_ch24_C"
+    }
+  ],
   "skills": [
     {
       "id": "sk-001",
@@ -605,7 +1534,9 @@
       "name": "아카이브 펜",
       "slot": "weapon",
       "rarity": "rare",
-      "skillIds": ["sk-001"],
+      "skillIds": [
+        "sk-001"
+      ],
       "atk": 6,
       "hp": 0
     }
@@ -625,7 +1556,9 @@
       "name": "기록 방한복",
       "slot": "armor",
       "rarity": "normal",
-      "skillIds": ["sk-003"],
+      "skillIds": [
+        "sk-003"
+      ],
       "atk": 0,
       "hp": 12
     }

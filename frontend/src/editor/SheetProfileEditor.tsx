@@ -149,7 +149,7 @@ export const SheetProfileEditor = ({ sheetName, title, rows, skillOptions, onCha
       );
     }
 
-    if (column === "characters" || column === "monsters" || column === "systems") {
+    if (column === "characters" || column === "monsters" || column === "systems" || column === "mapIds") {
       return (
         <label key={column} className="detail-span-2">
           {column} (한 줄에 하나 또는 쉼표)

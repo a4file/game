@@ -1,4 +1,5 @@
-import type { SheetBundle, StoryEventType } from "../types";
+import type { SheetBundle, StoryEventType, StorySheet } from "../types";
+import { normalizeStorySheetShape } from "./beatsNormalize";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import seedData from "../../data/sheets.json";
@@ -89,7 +90,7 @@ const STORY_EVENT_ROTATION: StoryEventType[] = [
 const defaultStoryEventForChapter = (chapter: number): StoryEventType =>
   STORY_EVENT_ROTATION[(Math.max(1, chapter) - 1) % STORY_EVENT_ROTATION.length];
 
-const toStoryBranchesFromStories = (stories: Array<Record<string, unknown>>) => {
+const toStoryBranchesFromStories = (stories: StorySheet[]) => {
   const branchTierByChapter = (chapter: number): "common" | "rare" | "legend" => {
     if (chapter >= 55) return chapter % 6 === 0 ? "legend" : "rare";
     if (chapter >= 35) return chapter % 4 === 0 ? "rare" : "common";
@@ -98,11 +99,11 @@ const toStoryBranchesFromStories = (stories: Array<Record<string, unknown>>) => 
   let globalChapterCursor = 1;
   return stories.flatMap((story, storyIndex) => {
     const storyId = String(story.id ?? `story-${String(storyIndex + 1).padStart(3, "0")}`);
-    const beats = Array.isArray(story.beats) ? (story.beats as Array<Record<string, unknown>>) : [];
+    const beats = Array.isArray(story.beats) ? story.beats : [];
     return beats.flatMap((beat, beatIndex) => {
-      const sequences = Array.isArray(beat.sequences) ? (beat.sequences as Array<Record<string, unknown>>) : [];
+      const sequences = Array.isArray(beat.sequences) ? beat.sequences : [];
       return sequences.flatMap((sequence, sequenceIndex) => {
-        const scenes = Array.isArray(sequence.scenes) ? (sequence.scenes as Array<Record<string, unknown>>) : [];
+        const scenes = Array.isArray(sequence.scenes) ? sequence.scenes : [];
         return scenes.map((scene, sceneIndex) => {
           const chapter = globalChapterCursor++;
           return {
@@ -151,16 +152,25 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
   const skillNameToId = new Map(normalizedSkills.map((skill) => [skill.name, skill.id]));
 
   const normalizedStories = Array.isArray(incoming.stories)
-    ? (incoming.stories as Array<Record<string, unknown>>).map((story, index) => ({
-        id: String(story.id ?? `story-${String(index + 1).padStart(3, "0")}`),
-        title: String(story.title ?? `STORY${index + 1}`),
-        theme: String(story.theme ?? "주제를 입력하세요."),
-        world: String(story.world ?? "세계관을 입력하세요."),
-        characters: toStringArray(story.characters),
-        monsters: toStringArray(story.monsters),
-        systems: toStringArray(story.systems),
-        beats: Array.isArray(story.beats) ? story.beats : []
-      }))
+    ? (incoming.stories as Array<Record<string, unknown>>).map((story, index) =>
+        normalizeStorySheetShape({
+          id: String(story.id ?? `story-${String(index + 1).padStart(3, "0")}`),
+          title: String(story.title ?? `STORY${index + 1}`),
+          theme: String(story.theme ?? "주제를 입력하세요."),
+          world: String(story.world ?? "세계관을 입력하세요."),
+          mapIds: toStringArray(story.mapIds),
+          characters: toStringArray(story.characters),
+          monsters: toStringArray(story.monsters),
+          objectIds: toStringArray(story.objectIds),
+          castDocFactions: toStringArray(story.castDocFactions),
+          castDocRules: toStringArray(story.castDocRules),
+          castDocEvents: toStringArray(story.castDocEvents),
+          castDocGoals: toStringArray(story.castDocGoals),
+          systems: toStringArray(story.systems),
+          plotSequences: Array.isArray(story.plotSequences) ? (story.plotSequences as SheetBundle["stories"][number]["plotSequences"]) : [],
+          beats: Array.isArray(story.beats) ? (story.beats as SheetBundle["stories"][number]["beats"]) : []
+        })
+      )
     : [];
   const inferredStoryBranches = toStoryBranchesFromStories(normalizedStories);
   const storyBranchSource =
@@ -171,22 +181,47 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
   return {
     version: Number(incoming.version ?? 1),
     maps: Array.isArray(incoming.maps)
-      ? (incoming.maps as Array<Record<string, unknown>>).map((map, index) => ({
-          id: String(map.id ?? `st-${String(index + 1).padStart(3, "0")}`),
-          name: String(map.name ?? `스테이지 ${index + 1}`),
-          recommendedPower: Number(map.recommendedPower ?? 100 + index * 10),
-          monsterIds: toStringArray(map.monsterIds)
-        }))
+      ? (incoming.maps as Array<Record<string, unknown>>).map((map, index) => {
+          const ieRaw = map.scriptDefaultIntExt;
+          const ie = ieRaw === "INT" || ieRaw === "EXT" || ieRaw === "INT_EXT" ? ieRaw : "";
+          const scriptLoc = map.scriptLocationName != null ? String(map.scriptLocationName).trim() : "";
+          const tod = map.scriptDefaultTimeOfDay != null ? String(map.scriptDefaultTimeOfDay).trim() : "";
+          return {
+            id: String(map.id ?? `st-${String(index + 1).padStart(3, "0")}`),
+            name: String(map.name ?? `스테이지 ${index + 1}`),
+            recommendedPower: Number(map.recommendedPower ?? 100 + index * 10),
+            monsterIds: toStringArray(map.monsterIds),
+            ...(scriptLoc ? { scriptLocationName: scriptLoc } : {}),
+            ...(ie ? { scriptDefaultIntExt: ie } : {}),
+            ...(tod ? { scriptDefaultTimeOfDay: tod } : {})
+          };
+        })
       : [],
     characters: Array.isArray(incoming.characters)
       ? (incoming.characters as Array<Record<string, unknown>>).map((character, index) => {
           const legacySkill = character.skill ? String(character.skill) : null;
           const mappedSkill = legacySkill ? skillNameToId.get(legacySkill) : null;
           const skillIds = toStringArray(character.skillIds);
+          const cr = character as Record<string, unknown>;
+          const tmdbPid = Number(cr.tmdbPersonId);
+          const tmdbG = Number(cr.tmdbGender);
+          const imdbRaw = cr.imdbId ?? cr.imdb_id;
+          const imdb = imdbRaw != null && String(imdbRaw).trim() !== "" ? String(imdbRaw).trim() : "";
+          const homeRaw = cr.homepage;
+          const home = homeRaw != null && String(homeRaw).trim() !== "" ? String(homeRaw).trim() : "";
+          const cue = cr.screenplayCueName != null ? String(cr.screenplayCueName).trim() : "";
           return {
             id: String(character.id ?? `c-${String(index + 1).padStart(3, "0")}`),
+            ...(cue ? { screenplayCueName: cue } : {}),
+            ...(Number.isFinite(tmdbPid) && tmdbPid > 0 ? { tmdbPersonId: tmdbPid } : {}),
+            ...(Number.isFinite(tmdbG) && tmdbG >= 0 && tmdbG <= 3 ? { tmdbGender: tmdbG } : {}),
+            ...(imdb ? { imdbId: imdb } : {}),
+            ...(home ? { homepage: home } : {}),
             name: String(character.name ?? `캐릭터 ${index + 1}`),
             description: String(character.description ?? "설명 없음"),
+            appearance: String(character.appearance ?? ""),
+            personality: String(character.personality ?? ""),
+            generationPrompt: String(character.generationPrompt ?? ""),
             rarity: normalizeRarity(character.rarity),
             className: String(character.className ?? "방랑자"),
             nation: String(character.nation ?? "무소속"),
@@ -205,11 +240,14 @@ const normalizeBundle = (raw: unknown): SheetBundle => {
       : [],
     monsters: Array.isArray(incoming.monsters)
       ? (incoming.monsters as Array<Record<string, unknown>>).map((monster, index) => {
+          const mr = monster as Record<string, unknown>;
           const legacySkill = monster.skill ? String(monster.skill) : null;
           const mappedSkill = legacySkill ? skillNameToId.get(legacySkill) : null;
           const skillIds = toStringArray(monster.skillIds);
+          const monCue = mr.screenplayCueName != null ? String(mr.screenplayCueName).trim() : "";
           return {
             id: String(monster.id ?? `m-${String(index + 1).padStart(3, "0")}`),
+            ...(monCue ? { screenplayCueName: monCue } : {}),
             name: String(monster.name ?? `몬스터 ${index + 1}`),
             rarity: normalizeRarity(monster.rarity),
             element: (monster.element as "fire" | "water" | "nature" | "machine") ?? "fire",

@@ -12,8 +12,16 @@ export interface Skill {
 
 export interface Character {
   id: string;
+  screenplayCueName?: string;
+  tmdbPersonId?: number;
+  tmdbGender?: number;
+  imdbId?: string;
+  homepage?: string;
   name: string;
   description: string;
+  appearance: string;
+  personality: string;
+  generationPrompt: string;
   rarity: Rarity;
   className: string;
   nation: string;
@@ -31,6 +39,7 @@ export interface Character {
 
 export interface Monster {
   id: string;
+  screenplayCueName?: string;
   name: string;
   rarity: Rarity;
   element: Element;
@@ -60,11 +69,37 @@ export interface Item {
   effect?: string;
 }
 
+export type ScreenplayIntExt = "INT" | "EXT" | "INT_EXT";
+
+export type ScriptBlockType = "action" | "character" | "parenthetical" | "dialogue" | "transition" | "general";
+
+export interface ScriptBlock {
+  id: string;
+  type: ScriptBlockType;
+  text: string;
+  cueName?: string;
+  extension?: string;
+}
+
+export interface ScriptMeta {
+  scriptTitle: string;
+  episodeTitle: string;
+  draftLabel: string;
+  writtenBy: string;
+  basedOn: string;
+  contact: string;
+  revisionNote: string;
+  pageNumberStart: number;
+}
+
 export interface MapStage {
   id: string;
   name: string;
   recommendedPower: number;
   monsterIds: string[];
+  scriptLocationName?: string;
+  scriptDefaultIntExt?: ScreenplayIntExt | "";
+  scriptDefaultTimeOfDay?: string;
 }
 
 export type StoryEventType =
@@ -100,6 +135,25 @@ export interface StoryScene {
   title: string;
   event: string;
   dramaticBeats: string[];
+  sceneGoal: string;
+  sceneConflict: string;
+  sceneChange: string;
+  emotionBeat: string;
+  castCharacterId: string;
+  castMonsterId: string;
+  castMapId: string;
+  castObjectId: string;
+  castDocFaction: string;
+  castDocRule: string;
+  castDocEvent: string;
+  castDocGoal: string;
+  sceneNumber: number;
+  intExt: ScreenplayIntExt | "";
+  locationPrimary: string;
+  locationSecondary: string;
+  timeOfDay: string;
+  sluglineOverride: string;
+  scriptBlocks: ScriptBlock[];
 }
 
 export interface StorySequence {
@@ -108,9 +162,22 @@ export interface StorySequence {
   scenes: StoryScene[];
 }
 
+export interface StoryPlotSequence {
+  slot: number;
+  title: string;
+  plotRole: string;
+  coversBeats: string;
+  notes: string;
+}
+
 export interface StoryBeat {
   id: string;
   title: string;
+  sceneRangeLabel: string;
+  narrativeRole: string;
+  narrativeCore: string;
+  requiredElements: string;
+  emotionAxis: string;
   sequences: StorySequence[];
 }
 
@@ -119,10 +186,18 @@ export interface StorySheet {
   title: string;
   theme: string;
   world: string;
+  mapIds: string[];
   characters: string[];
   monsters: string[];
+  objectIds: string[];
+  castDocFactions: string[];
+  castDocRules: string[];
+  castDocEvents: string[];
+  castDocGoals: string[];
   systems: string[];
+  plotSequences: StoryPlotSequence[];
   beats: StoryBeat[];
+  scriptMeta?: ScriptMeta;
 }
 
 export interface SheetBundle {

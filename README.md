@@ -1,16 +1,330 @@
 # Terminal DOS RPG
 
-웹 기반 텍스트 RPG입니다. 브라우저에서 DOS 스타일 터미널 UI로 플레이하며, 관리자 시트 에디터로 콘텐츠를 편집할 수 있습니다.
-현재 기본 작성자 설정은 `곽한승 <a4file@kakao.com>` 기준으로 사용합니다.
+브라우저 기반 DOS 스타일 텍스트 RPG입니다.  
+플레이어는 터미널 명령으로 게임을 진행하고, 에디터에서 **STORY 중심 시트**를 직접 관리할 수 있습니다.
 
-## 구성
+이 프로젝트는 "플레이어가 감독처럼 한 편의 이야기를 만든다"는 목표로, 스토리 데이터를 다음 계층으로 구성합니다.
 
-- `frontend/`: React + Zustand + xterm 터미널 UI
-- `backend/`: Express API (콘텐츠/AI/에디터)
+- `STORY`
+- `theme`, `world`, `characters`, `monsters`, `systems`
+- `beats` (권장 12비트)
+- `sequences`
+- `scenes`
+- `dramaticBeats`
 
-## Git 원격 연결
+---
 
-로컬 저장소는 이미 초기화되어 있습니다. GitHub에 새 저장소를 만든 뒤:
+## 1) 프로젝트 구성
+
+- `frontend/`: React + Vite + Zustand + xterm 기반 게임/에디터 UI
+- `backend/`: Express API (콘텐츠 번들, 에디터 저장, AI 보조)
+- `backend/data/sheets.json`: 기본 시트 데이터 소스
+- `docs/mythic-archive/`: World Bible 마크다운 문서
+- `api/[[...slug]].js`: Vercel 서버리스 진입점
+
+---
+
+## 2) STORY 메인 데이터 구조
+
+현재 시트 번들의 핵심은 `stories`입니다.
+
+```json
+{
+  "stories": [
+    {
+      "id": "story-001",
+      "title": "STORY1 ...",
+      "theme": "...",
+      "world": "...",
+      "characters": ["c-001", "c-002"],
+      "monsters": ["m-001"],
+      "systems": ["..."],
+      "beats": [
+        {
+          "id": "beat-01",
+          "title": "세팅",
+          "sequences": [
+            {
+              "id": "sequence-01-01",
+              "title": "...",
+              "scenes": [
+                {
+                  "id": "scene-01-01-01",
+                  "title": "...",
+                  "event": "...",
+                  "dramaticBeats": ["...", "...", "..."]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 호환성 규칙 (중요)
+
+- 런타임은 여전히 `storyBranches` 기반 스토리 명령(`story`, `story choose`)을 사용합니다.
+- 대신 프론트/백엔드 정규화 단계에서 **`stories -> storyBranches`를 자동 파생**합니다.
+- 즉, 운영 관리는 `stories`를 메인으로 하고, 게임 엔진 호환은 내부 파생으로 유지합니다.
+
+---
+
+## 3) 현재 기본 시드 데이터
+
+`backend/data/sheets.json`은 더미 대량 데이터 대신 STORY 중심 샘플로 교체되어 있습니다.
+
+- `STORY1 봉인 서고`: 12비트 구성 완료
+- `STORY2 잿빛 항로`: 12비트 구성 완료
+- `storyBranches`: 빈 배열 (정규화 시 `stories`에서 자동 생성)
+
+---
+
+## 4) 로컬 실행
+
+### 4.1 백엔드
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+- 기본 주소: `http://localhost:4000`
+- 상태 확인: `GET /health`
+
+### 4.2 프론트엔드
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- 기본 주소: `http://localhost:5173`
+
+프론트 `.env` 예시:
+
+```bash
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+지정하지 않으면 기본적으로 `/api`를 사용합니다.
+
+---
+
+## 5) 빌드
+
+### 프론트
+
+```bash
+cd frontend
+npm run build
+```
+
+실행 내용:
+
+- `tsc -b`
+- `copy:sheets-fallback`
+- `copy:mythic`
+- `vite build`
+
+### 백엔드
+
+```bash
+cd backend
+npm run build
+```
+
+---
+
+## 6) Vercel 배포 가이드
+
+## 핵심 주의사항
+
+**Root Directory는 반드시 리포지토리 루트(`.`)** 로 설정하세요.  
+`frontend/`만 루트로 잡으면 `api/` 서버리스와 루트 빌드 스크립트가 빠져 API가 동작하지 않습니다.
+
+### 배포 빌드 흐름
+
+- `npm run vercel-build`
+- 백엔드 `tsc`
+- `docs/mythic-archive`, `sheets.json`을 `backend/dist/vercel-bundle/`로 복사
+- 프론트 `vite build`
+
+### API 경로
+
+- 기본 베이스: `/api`
+- 예시:
+  - `GET /api/health`
+  - `GET /api/content/bundle`
+  - `GET /api/editor/sheets`
+
+### 저장소 특성 (DB 관련)
+
+이 프로젝트는 기본적으로 RDB(Postgres 등)와 직접 연결되지 않습니다.
+
+- 로컬: `backend/data/sheets.json`, `docs/mythic-archive/*.md` 파일 기반
+- Vercel: `VERCEL=1` 환경에서 `/tmp` 저장(비영속)
+
+즉, Vercel 서버리스에서는 콜드 스타트/스케일 시 저장값이 유실될 수 있습니다.
+
+영속 저장이 필요하면:
+
+- Vercel KV / Postgres(Neon) / Blob
+- Supabase
+- 혹은 API 서버 별도 호스팅(Railway 등)
+
+중 하나를 연동하세요.
+
+### 권장 환경 변수
+
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_SITE_URL`
+- `OPENROUTER_MODEL`
+- `OPENROUTER_FALLBACK_MODELS`
+- (선택) `CORS_ORIGIN`
+
+배포 동일성 테스트:
+
+```bash
+npm install
+bash scripts/vercel-build.sh
+```
+
+---
+
+## 7) 에디터 사용법 (Admin Sheet Editor)
+
+게임에서 `editor on` 명령으로 에디터를 엽니다.
+
+### 주요 탭
+
+- `stories` (메인)
+- `maps`
+- `characters`
+- `monsters`
+- `storyBranches` (호환/검증용)
+- `skills`
+- `weapons`
+- `items`
+- `equipments`
+- `bible`
+
+### stories 편집 포인트
+
+- `characters`, `monsters`, `systems`: 줄바꿈/쉼표 기반 배열 입력
+- `beats`: JSON 편집
+- 권장: 12비트 구조를 기준으로 `beat -> sequence -> scene` 설계
+
+### 제공 기능
+
+- 행 추가/복제/삭제
+- JSON export
+- 백엔드 reload/save
+- AI row 생성 / 셀 보조 제안
+
+---
+
+## 8) 터미널 명령 (플레이)
+
+대표 명령:
+
+- `help`
+- `/start`
+- `story`
+- `story choose A|B|C`
+- `profile`
+- `inventory`
+- `battle`
+- `adventure`
+- `book shop`
+- `book buy random`
+- `save`
+- `load`
+- `reload-bundle`
+- `diag`
+- `editor on`
+- `editor off`
+
+---
+
+## 9) 스토리 이벤트 시스템 요약
+
+이벤트 타입:
+
+- `battle`
+- `adventure`
+- `companion`
+- `merchant`
+- `town`
+- `fishing`
+- `maze`
+- `trap`
+- `treasure`
+
+### story choose 밸런스 개요
+
+- 성공 보상: `eventTier(common/rare/legend)` 기반 gem + 타입별 추가 보상
+- 실패 페널티: `eventTier` 기반 gem 손실 + 타입별 추가 페널티
+- 동일 타입 연속 성공 시 콤보 보너스 플래그/추가 보상 적용
+
+### 챕터 구간 배수
+
+- `early (1~20)`: 기본 배수
+- `mid (21~45)`: 보상/페널티 증가
+- `late (46+)`: 고리스크·고보상 강화
+
+---
+
+## 10) 네트워크/폴백 동작
+
+번들 로드 순서:
+
+1. API `/content/bundle` 시도
+2. 실패 시 `public/sheets-fallback.json` 시도
+
+Bible 로드 순서:
+
+1. API `/editor/bible` 시도
+2. 실패 시 `public/bible-manifest.json` + `public/mythic-archive/*.md` 폴백
+
+즉, API 장애 시에도 읽기 중심 플레이/문서 확인이 가능한 구조입니다.
+
+---
+
+## 11) 자주 발생하는 이슈
+
+### Q1. `npm run build` 실패
+
+- 루트에서 `build` 스크립트가 없을 수 있습니다.
+- `frontend` 또는 `backend` 디렉터리에서 각각 실행하세요.
+
+### Q2. `bundle not loaded`
+
+- 터미널에서 `diag`, `reload-bundle` 실행
+- `/api` 라우팅/배포 Root Directory 확인
+- API 실패 시 폴백 파일 존재 여부 확인
+
+### Q3. 에디터 저장이 되지 않음
+
+- Vercel 서버리스에서는 `/tmp` 비영속 저장
+- 재기동 시 초기화 가능
+- 영구 저장이 필요하면 외부 DB/스토리지 연동 필요
+
+---
+
+## 12) 개발 팁
+
+- STORY를 추가할 때는 `stories`에만 입력하고, `storyBranches` 수동 편집은 최소화하세요.
+- 씬 단위 텍스트(`event`)와 `dramaticBeats`를 함께 작성하면 플레이 체감이 안정적입니다.
+- 12비트 템플릿을 복제해 `STORY3 ~ STORY99`를 확장하면 운영이 쉽습니다.
+
+---
+
+## 13) Git 원격 초기 연결
 
 ```bash
 cd /path/to/game
@@ -19,166 +333,10 @@ git branch -M main
 git push -u origin main
 ```
 
-GitHub CLI를 쓰는 경우 (`gh auth login` 후):
+GitHub CLI 사용:
 
 ```bash
+gh auth login
 gh repo create <저장소이름> --private --source=. --remote=origin --push
 ```
-
-## Vercel 배포
-
-**프로젝트 Root Directory는 리포지토리 루트(`.` )** 로 두세요. `frontend/`만 지정하면 `api/` 서버리스와 루트 `vercel-build`가 빠져 백엔드가 동작하지 않습니다.
-
-- **빌드**: `vercel.json` → `npm run vercel-build` → 백엔드 `tsc` + `docs/mythic-archive`·`sheets.json`을 `backend/dist/vercel-bundle/`에 복사 → 프론트 `vite build`
-- **API(백엔드)**: 루트 `api/[[...slug]].js` + `serverless-http`로 Express를 서버리스에 올립니다. 클라이언트 기본 베이스 URL은 **`/api`** (`GET /api/health`, `GET /api/content/bundle` 등).
-- **환경 변수**: `VITE_API_BASE_URL`을 비우면 위와 같이 **`/api`** 를 씁니다. 별 도메인/API만 쓸 때만 절대 URL을 넣으면 됩니다.
-
-- **저장(DB)**: 이 프로젝트는 **PostgreSQL 같은 DB에 연결되어 있지 않습니다.** 로컬은 `backend/data/sheets.json`과 `docs/mythic-archive/*.md`(파일); Vercel 서버리스에는 **`VERCEL=1`일 때 `/tmp`** 에만 씁니다(비영속). 게임 진행 번들 폴백은 빌드 시 `frontend/public/`에 포함되는 **`sheets-fallback.json`**, World Bible 목록/API 실패 시 **`bible-manifest.json` + `/mythic-archive/*.md`** 정적 폴백을 봅니다. **영속·멀티 리전 저장**이 필요하면 Vercel은 **KV / Postgres (Neon) / Blob** 또는 Supabase 같은 외부 DB를 따로 두고 Express에서 연동하는 방식을 권장합니다.
-
-**Vercel 대시보드 → Environment Variables** (Production 등):
-
-- `OPENROUTER_API_KEY`, `OPENROUTER_SITE_URL`, `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODELS` — AI 사용 시
-- (선택) `CORS_ORIGIN` — API만 다른 도메인에 둘 때
-
-**서버리스 제한**: `VERCEL=1`일 때 시트·바이블 저장은 **`/tmp`** 기반이라 **콜드 스타트마다 초기화**될 수 있습니다. 영구 저장이 필요하면 별도 DB·Blob·호스팅(Railway 등)으로 API를 분리하는 편이 좋습니다.
-
-로컬에서 배포와 동일한 빌드를 시험하려면:
-
-```bash
-npm install
-bash scripts/vercel-build.sh
-```
-
-## 실행
-
-### backend
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-기본 주소: `http://localhost:4000`
-
-### frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-기본 주소: `http://localhost:5173`
-
-`.env` 예시:
-
-```bash
-VITE_API_BASE_URL=http://localhost:4000
-```
-
-## OpenRouter 설정
-
-백엔드 환경변수:
-
-```bash
-OPENROUTER_API_KEY=sk-or-v1-your-key-here
-OPENROUTER_SITE_URL=http://localhost:5173
-OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct:free
-OPENROUTER_FALLBACK_MODELS=qwen/qwen-2.5-7b-instruct:free,mistralai/mistral-7b-instruct:free
-```
-
-`backend/.env` 파일을 사용하며, 기본 추천 무료 모델이 이미 설정되어 있습니다. 필요 시 `.env`에서 모델명을 바꾸면 즉시 반영됩니다.
-
-키가 없거나 API 실패 시 룰 기반 폴백 문장을 반환합니다.
-
-## 터미널 명령
-
-- `help`
-- `profile`
-- `gacha 1 standard`
-- `gacha 10 pickup`
-- `battle`
-- `adventure`
-- `inventory`
-- `equip`
-- `levelup`
-- `save`
-- `load`
-- `editor on`
-- `editor off`
-
-## 관리자 에디터
-
-`editor on` 입력 시 우측 시트 에디터 활성화:
-
-- 탭: `maps`, `characters`, `monsters`, `weapons`, `items`, `equipments`
-- 인라인 셀 편집
-- JSON export
-- AI row 생성 / 셀 보조 suggestion
-
-## 게임 구조 시각화
-
-```mermaid
-flowchart LR
-  userInput[UserCommand] --> terminalShell[TerminalShell]
-  terminalShell --> runCommand[runCommandStore]
-  runCommand --> startFlow[startDraftFlow]
-  runCommand --> storyFlow[storyRun]
-  runCommand --> battleFlow[battleRun]
-  runCommand --> adventureFlow[adventureRun]
-  storyFlow --> branchLookup[storyBranchesByChapter]
-  branchLookup --> eventDispatch[eventTypeDispatch]
-  eventDispatch --> choiceResolve[storyChooseResolve]
-  choiceResolve --> flagUpdate[sessionFlagsUpdate]
-  flagUpdate --> nextChapter[nextChapterProgress]
-  adminEditor[AdminEditor] --> editorApi[editorSheetsApi]
-  editorApi --> normalize[backendNormalizeBundle]
-  normalize --> sheetsData[sheetsJson]
-  sheetsData --> branchLookup
-```
-
-## 페이지 이벤트 타입
-
-- `battle`: 전투 중심 장면, 전투형 선택 보상 강화
-- `adventure`: 탐사/서사 장면, 단서 및 자원 획득
-- `companion`: 동료 영입 시도 장면, 성공 시 계약 토큰
-- `merchant`: 보부상 거래 장면, 할인 토큰/도박형 리스크
-- `town`: 휴식/정비 장면, 안전 선택 보정 및 회복 자원
-
-### 이벤트 밸런스 표 (story choose 기준)
-
-| eventType | 기본 성공 선택 | 핵심 추가 보상 | 실패 추가 페널티(gem) |
-|---|---|---|---|
-| battle | A | `warCry +1` | +4 |
-| adventure | B | `memoryShard +1` | +3 |
-| companion | A | `allyContract +1` | +4 |
-| merchant | B | `discountToken +1` | +6 |
-| town | A | `restPass +1` | +2 |
-
-- 공통 성공 보상: `eventTier` 기준 gem (`common=5`, `rare=10`, `legend=18`)
-- 공통 실패 손실: `eventTier` 기준 gem (`common=3`, `rare=5`, `legend=7`) + 이벤트별 추가 페널티
-- 동일 `eventType` 연속 성공(2회 이상): `memoryShard +1` 콤보 보너스
-
-### 챕터 구간 스케일링
-
-- `early (1~20)`: 보상 x1.00 / 페널티 x1.00 / 추가보상 x1.00
-- `mid (21~45)`: 보상 x1.20 / 페널티 x1.25 / 추가보상 x1.10
-- `late (46+)`: 보상 x1.40 / 페널티 x1.60 / 추가보상 x1.25
-
-같은 이벤트 타입이라도 후반으로 갈수록 기대 보상과 실패 리스크가 함께 커져 긴장감을 유지합니다.
-
-### eventTier 자동 상향 규칙
-
-- `mid (21~45)`: `common` 챕터는 5챕터마다 `rare`로 승급
-- `late (46+)`:
-  - `common`은 짝수 챕터 `rare`, 6배수 챕터 `legend`
-  - `rare`는 3배수 챕터 `legend`로 승급
-
-즉, 후반으로 갈수록 `rare/legend` 체감 빈도가 의도적으로 증가합니다.
-
-추가 튜닝(`eventType` 가중):
-- `battle`: `rare -> legend` 승격이 가장 빠름(후반 짝수 챕터 고강도)
-- `merchant`: `legend` 승격 빈도를 높여 고위험/고보상 거래 체감 강화
-- `town`: 승격 주기를 완만하게 유지해 안정 구간 역할 유지
 

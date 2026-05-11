@@ -1,9 +1,11 @@
 import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../apiBase";
 import { formatApiFailure } from "../apiErrors";
+import { MarkdownPreview } from "./MarkdownPreview";
+import { DOC_CATEGORY_ORDER, groupDocFilesByCategory, normalizeDocFileRow, type DocFileRow } from "./docs/docCategories";
 
-type BibleFileRow = { name: string; label: string };
+type BibleDocMode = "edit" | "view";
 
 const publicAssetsBase = (): string => {
   const base = import.meta.env.BASE_URL ?? "/";
@@ -11,25 +13,24 @@ const publicAssetsBase = (): string => {
 };
 
 /** API·manifest 깨졌을 때 최후 폴백 (백엔드 whitelist와 동일) */
-const BIBLE_STATIC_FALLBACK: BibleFileRow[] = [
-  { name: "00-world-bible.md", label: "World Bible" },
-  { name: "01-factions.md", label: "Factions" },
-  { name: "02-content-standards.md", label: "Content standards" },
-  { name: "03-tone-and-taboos.md", label: "Tone & taboos" }
+const BIBLE_STATIC_FALLBACK: DocFileRow[] = [
+  normalizeDocFileRow({ name: "00-world-bible.md", label: "World Bible", category: "settings" })!,
+  normalizeDocFileRow({ name: "01-factions.md", label: "Factions", category: "orgs" })!,
+  normalizeDocFileRow({ name: "02-content-standards.md", label: "Content standards", category: "settings" })!,
+  normalizeDocFileRow({ name: "03-tone-and-taboos.md", label: "Tone & taboos", category: "settings" })!
 ];
 
-async function fetchStaticManifestAndFiles(base: string): Promise<BibleFileRow[]> {
+async function fetchStaticManifestAndFiles(base: string): Promise<DocFileRow[]> {
   const manUrl = `${base}bible-manifest.json`;
   try {
     const r = await fetch(manUrl);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     const rows = Array.isArray(data?.files) ? data.files : [];
-    const normalized: BibleFileRow[] = [];
+    const normalized: DocFileRow[] = [];
     for (const row of rows) {
-      const name = typeof row?.name === "string" ? row.name : "";
-      const label = typeof row?.label === "string" ? row.label : name;
-      if (name.endsWith(".md")) normalized.push({ name, label });
+      const doc = normalizeDocFileRow(row as { name?: unknown; label?: unknown; category?: unknown });
+      if (doc) normalized.push(doc);
     }
     if (normalized.length > 0) return normalized.sort((a, b) => a.name.localeCompare(b.name));
   } catch {
@@ -44,7 +45,7 @@ export const BibleEditorPanel = () => {
     []
   );
 
-  const [files, setFiles] = useState<BibleFileRow[]>([]);
+  const [files, setFiles] = useState<DocFileRow[]>([]);
   const [source, setSource] = useState<"api" | "static" | null>(null);
   const [selected, setSelected] = useState("");
   const [content, setContent] = useState("");
@@ -53,6 +54,7 @@ export const BibleEditorPanel = () => {
   const [error, setError] = useState("");
   const [banner, setBanner] = useState("");
   const [loadingList, setLoadingList] = useState(true);
+  const [docMode, setDocMode] = useState<BibleDocMode>("edit");
 
   useEffect(() => {
     let cancelled = false;
@@ -64,13 +66,10 @@ export const BibleEditorPanel = () => {
       const baseHint = `${getApiBaseUrl().replace(/\/?$/, "")}/editor/bible`;
 
       try {
-        const { data } = await api.get<{ files?: BibleFileRow[] }>("/editor/bible");
+        const { data } = await api.get<{ files?: unknown[] }>("/editor/bible");
         if (cancelled) return;
         const list = Array.isArray(data?.files)
-          ? data.files.filter((f) => typeof f?.name === "string" && f.name.endsWith(".md")).map((f) => ({
-              name: f.name,
-              label: typeof f.label === "string" ? f.label : f.name
-            }))
+          ? (data.files.map((f) => normalizeDocFileRow(f as { name?: unknown; label?: unknown; category?: unknown })).filter(Boolean) as DocFileRow[])
           : [];
         setFiles(list);
         setSource("api");
@@ -117,51 +116,55 @@ export const BibleEditorPanel = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api]);
 
-  const loadFile = async (name: string) => {
-    if (!name) return;
-    setError("");
-    setStatus("");
-    const src = source;
-    try {
-      if (src === "api") {
-        const { data } = await api.get<{ name?: string; content?: string }>(
-          `/editor/bible/${encodeURIComponent(name)}`
-        );
-        const text = typeof data?.content === "string" ? data.content : "";
-        setContent(text);
+  const loadFile = useCallback(
+    async (name: string) => {
+      if (!name) return;
+      setError("");
+      setStatus("");
+      const src = source;
+      try {
+        if (src === "api") {
+          const { data } = await api.get<{ name?: string; content?: string }>(
+            `/editor/bible/${encodeURIComponent(name)}`
+          );
+          const text = typeof data?.content === "string" ? data.content : "";
+          setContent(text);
+          setDirty(false);
+          setStatus(`[SYS] 로드(API): ${data?.name ?? name}`);
+          return;
+        }
+        const pb = publicAssetsBase();
+        const url = `${pb}mythic-archive/${encodeURIComponent(name)}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`폴백 HTTP ${res.status} ${url}`);
+        }
+        setContent(await res.text());
         setDirty(false);
-        setStatus(`[SYS] 로드(API): ${data?.name ?? name}`);
-        return;
+        setStatus(`[SYS] 로드(정적): ${name}`);
+      } catch (err) {
+        const msg =
+          src === "api"
+            ? formatApiFailure(err, `/editor/bible/${name}`).join("\n")
+            : err instanceof Error
+              ? err.message
+              : String(err);
+        setError(msg);
+        setContent("");
       }
-      const pb = publicAssetsBase();
-      const url = `${pb}mythic-archive/${encodeURIComponent(name)}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`폴백 HTTP ${res.status} ${url}`);
-      }
-      setContent(await res.text());
-      setDirty(false);
-      setStatus(`[SYS] 로드(정적): ${name}`);
-    } catch (err) {
-      const msg =
-        src === "api"
-          ? formatApiFailure(err, `/editor/bible/${name}`).join("\n")
-          : err instanceof Error
-            ? err.message
-            : String(err);
-      setError(msg);
-      setContent("");
-    }
-  };
+    },
+    [api, source]
+  );
 
   useEffect(() => {
     if (!selected || loadingList || source === null) return;
-    void loadFile(selected);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, loadingList, source]);
+    const id = window.setTimeout(() => {
+      void loadFile(selected);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [selected, loadingList, source, loadFile]);
 
   const saveFile = async () => {
     if (!selected || source !== "api") {
@@ -194,36 +197,73 @@ export const BibleEditorPanel = () => {
   return (
     <div className="bible-editor-layout">
       <aside className="bible-file-sidebar">
-        <div className="bible-sidebar-head">문서 목록</div>
+        <div className="bible-sidebar-head">문서 목록 (카테고리)</div>
         <div className="bible-file-list">
           {loadingList ? (
             <p className="bible-sidebar-empty">로딩 중…</p>
           ) : files.length === 0 ? (
             <p className="bible-sidebar-empty">파일 없음</p>
           ) : (
-            files.map((f) => (
-              <button
-                key={f.name}
-                type="button"
-                className={`bible-file-row ${selected === f.name ? "active" : ""}`}
-                onClick={() => onSelectFile(f.name)}
-              >
-                <span className="bible-file-label">{f.label}</span>
-                <small>{f.name}</small>
-              </button>
-            ))
+            (() => {
+              const grouped = groupDocFilesByCategory(files);
+              return DOC_CATEGORY_ORDER.map((cat) => {
+                const rows = grouped[cat.id];
+                return (
+                  <div key={cat.id} className="bible-doc-category">
+                    <div className="bible-doc-category-head" title={cat.hint}>
+                      {cat.label}
+                    </div>
+                    {rows.length === 0 ? (
+                      <p className="bible-sidebar-empty bible-sidebar-empty--nested">문서 없음</p>
+                    ) : (
+                      rows.map((f) => (
+                        <button
+                          key={f.name}
+                          type="button"
+                          className={`bible-file-row ${selected === f.name ? "active" : ""}`}
+                          onClick={() => onSelectFile(f.name)}
+                        >
+                          <span className="bible-file-label">{f.label}</span>
+                          <small>{f.name}</small>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </aside>
       <section className="bible-editor-main">
         <div className="bible-toolbar">
           <div className="bible-toolbar-title">
-            <span className="sheet-profile-badge">World Bible</span>
+            <span className="sheet-profile-badge">DOCS</span>
             <span className="bible-current-file">{selected || "—"}</span>
             {source === "api" && <small className="bible-source-pill api">API</small>}
             {source === "static" && <small className="bible-source-pill static">정적폴백</small>}
           </div>
           <div className="bible-toolbar-actions">
+            <div className="bible-mode-switch" role="tablist" aria-label="문서 표시 모드">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={docMode === "edit"}
+                className={`bible-mode-btn ${docMode === "edit" ? "active" : ""}`}
+                onClick={() => setDocMode("edit")}
+              >
+                편집
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={docMode === "view"}
+                className={`bible-mode-btn ${docMode === "view" ? "active" : ""}`}
+                onClick={() => setDocMode("view")}
+              >
+                보기
+              </button>
+            </div>
             <button type="button" onClick={() => void loadFile(selected)} disabled={!selected || source === null}>
               reload file
             </button>
@@ -240,17 +280,23 @@ export const BibleEditorPanel = () => {
         </div>
         <p className="bible-hint">
           Mythic Archive 마크다운. {readOnlyHint}
+          {docMode === "edit" ? " 편집 모드: 원문만 표시됩니다." : " 보기 모드: 렌더링된 미리보기만 표시됩니다. 수정은 편집으로 전환하세요."}
         </p>
-        <textarea
-          className="bible-textarea"
-          spellCheck={false}
-          value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            setDirty(true);
-          }}
-          placeholder={loadingList || source === null ? "로딩 중…" : "내용이 여기에 표시됩니다."}
-        />
+        {docMode === "edit" ? (
+          <textarea
+            className="bible-textarea"
+            spellCheck={false}
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value);
+              setDirty(true);
+            }}
+            placeholder={loadingList || source === null ? "로딩 중…" : "내용이 여기에 표시됩니다."}
+            data-llm-key={selected ? `docs:bible:${selected}:markdown` : undefined}
+          />
+        ) : (
+          <MarkdownPreview markdown={content} className="bible-markdown-preview" emptyMessage="이 파일에 표시할 마크다운이 없습니다." />
+        )}
         {banner ? <pre className="preview bible-banner-preview">{banner}</pre> : null}
         {error ? <pre className="preview error-preview">{error}</pre> : null}
         {status ? <pre className="preview bible-status-preview">{status}</pre> : null}

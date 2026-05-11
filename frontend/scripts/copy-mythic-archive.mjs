@@ -19,6 +19,14 @@ const labelMap = {
   "03-tone-and-taboos.md": "Tone & taboos"
 };
 
+/** 설정 | 종족 | 기술 | 조직 | 역사 — API·프론트와 동일 */
+const categoryMap = {
+  "00-world-bible.md": "settings",
+  "01-factions.md": "orgs",
+  "02-content-standards.md": "settings",
+  "03-tone-and-taboos.md": "settings"
+};
+
 if (!existsSync(SRC)) {
   console.warn(`[copy-mythic-archive] skip: missing ${SRC}`);
   process.exit(0);
@@ -33,7 +41,8 @@ for (const name of mdFiles) {
   copyFileSync(srcPath, join(DEST_DIR, name));
   files.push({
     name,
-    label: labelMap[name] ?? name
+    label: labelMap[name] ?? name,
+    category: categoryMap[name] ?? "settings"
   });
 }
 files.sort((a, b) => a.name.localeCompare(b.name));

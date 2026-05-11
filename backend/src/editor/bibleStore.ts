@@ -32,6 +32,19 @@ export const bibleFileLabel = (name: string): string => {
   return map[name] ?? name;
 };
 
+/** DOCS: 설정 / 종족 / 기술 / 조직 / 역사 — 프론트 `docCategories`와 동일 키 */
+export type BibleDocCategory = "settings" | "races" | "tech" | "orgs" | "history";
+
+export const bibleFileCategory = (name: string): BibleDocCategory => {
+  const map: Record<string, BibleDocCategory> = {
+    "00-world-bible.md": "settings",
+    "01-factions.md": "orgs",
+    "02-content-standards.md": "settings",
+    "03-tone-and-taboos.md": "settings"
+  };
+  return map[name] ?? "settings";
+};
+
 /** Returns canonical filename or null if not allowed. */
 export const assertBibleFile = (raw: string): string | null => {
   let decoded = raw;
